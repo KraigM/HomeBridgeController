@@ -10,7 +10,7 @@ module.exports = function() {
 		return cache;
 	}
 
-	var plugins = {};
+	var plugins = [];
 	var pluginErrors = {};
 	var api = new API();
 
@@ -32,7 +32,8 @@ module.exports = function() {
 		var info = { };
 		info.Path = plugin.pluginPath;
 		info.Version = version(info.Path);
-		plugins[plugin.name()] = info;
+		info.Name = plugin.name();
+		plugins.push(info);
 
 	}.bind(this));
 
