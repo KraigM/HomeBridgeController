@@ -11,7 +11,7 @@ var maxDiff = 1000 * 60 * 60;
 function AuthKey(homebridge) {
 	var accessKey = "174-39-175";
 	accessKey = accessKey.replace(/-/g, "");
-	this.accessKey = accessKey + accessKey + accessKey + accessKey;
+	this.accessKey = crypto.createHash('sha256').update(accessKey).digest();
 }
 
 AuthKey.prototype.verifyToken = function(token) {
@@ -26,7 +26,7 @@ AuthKey.prototype.verifyToken = function(token) {
 
 		// Decrypt token data
 		var decipher = crypto.createDecipheriv('aes-256-cbc', this.accessKey, iv);
-		var decryptedToken = decipher.update(data, 'utf8', 'utf8');
+		var decryptedToken = decipher.update(data, 'buffer', 'utf8');
 		decryptedToken += decipher.final('utf8');
 
 		// Determine token datetime offset
