@@ -5,7 +5,7 @@ var version = require('./version.js');
 
 var cache;
 
-module.exports = function() {
+module.exports = function () {
 	if (cache) {
 		return cache;
 	}
@@ -17,19 +17,19 @@ module.exports = function() {
 	var platList;
 
 	api.registerAccessoryBase = api.registerAccessory;
-	api.registerAccessory = function(pluginName, accessoryName) {
+	api.registerAccessory = function (pluginName, accessoryName) {
 		this.registerAccessoryBase.apply(this, arguments);
 		accList.push(accessoryName);
 	}.bind(api);
 
 	api.registerPlatformBase = api.registerPlatform;
-	api.registerPlatform = function(pluginName, platformName) {
+	api.registerPlatform = function (pluginName, platformName) {
 		this.registerPlatformBase.apply(this, arguments);
 		platList.push(platformName);
 	}.bind(api);
 
 	// load and validate plugins - check for valid package.json, etc.
-	Plugin.installed().forEach(function(plugin) {
+	Plugin.installed().forEach(function (plugin) {
 		accList = [];
 		platList = [];
 
@@ -45,7 +45,7 @@ module.exports = function() {
 		// call the plugin's initializer and pass it our API instance
 		plugin.initializer(api);
 
-		var info = { };
+		var info = {};
 		info.Path = plugin.pluginPath;
 		info.Version = version(info.Path);
 		info.Name = plugin.name();

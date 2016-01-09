@@ -13,7 +13,7 @@ function AuthKey(accessKey) {
 	this.accessKey = crypto.createHash('sha256').update(accessKey).digest();
 }
 
-AuthKey.prototype.verifyToken = function(token) {
+AuthKey.prototype.verifyToken = function (token) {
 	try {
 		var tokenBuf = new Buffer(token, 'base64');
 

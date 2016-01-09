@@ -20,7 +20,7 @@ function Server(homebridge, port, accessKey, log) {
 
 	var app = express();
 
-	var jsonRtn = function(func) {
+	var jsonRtn = function (func) {
 		return function (req, res) {
 			var rtn;
 			try {
@@ -51,8 +51,8 @@ function Server(homebridge, port, accessKey, log) {
 	this.app = app;
 }
 
-Server.prototype.start = function() {
-	this.server = this.app.listen(this.port, function() {
+Server.prototype.start = function () {
+	this.server = this.app.listen(this.port, function () {
 		var port = this.server.address().port;
 		var key = 'hbctrllink';
 		mdns.createAdvertisement(mdns.tcp(key), port).start();

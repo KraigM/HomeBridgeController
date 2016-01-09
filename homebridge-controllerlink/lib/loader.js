@@ -5,7 +5,7 @@
 var Path = require('path');
 
 function findModuleParent(mod, pred) {
-	while(mod){
+	while (mod) {
 		if (pred(mod)) {
 			return mod;
 		}
@@ -14,7 +14,7 @@ function findModuleParent(mod, pred) {
 }
 
 function findLibDirectory() {
-	var PluginModule = findModuleParent(module, function(mod){
+	var PluginModule = findModuleParent(module, function (mod) {
 		return mod.exports.Plugin && mod.exports.Plugin.name == 'Plugin';
 	});
 	if (PluginModule) {
