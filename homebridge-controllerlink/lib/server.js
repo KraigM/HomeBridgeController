@@ -10,12 +10,12 @@ var Auth = require('./auth.js');
 
 module.exports = Server;
 
-function Server(homebridge, port, log) {
+function Server(homebridge, port, accessKey, log) {
 	this.homebridge = homebridge;
 	this.port = port || 51828;
 	this.log = log;
 	this.debug = log.debug;
-	var auth = new Auth(homebridge);
+	var auth = new Auth(accessKey);
 	this.auth = auth;
 
 	var app = express();

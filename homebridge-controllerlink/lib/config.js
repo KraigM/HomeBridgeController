@@ -30,6 +30,17 @@ var getConfig = function(homebridge) {
 	};
 };
 
+var getBridge = function(config) {
+	var cfg = config.Config || getConfig(config).Config;
+	return cfg && cfg.bridge;
+};
+
+var getBridgePin = function(config) {
+	var bdgCfg = getBridge(config);
+	return bdgCfg && bdgCfg.pin;
+};
+
 module.exports = {
 	get: getConfig,
+	getBridgePin: getBridgePin
 };

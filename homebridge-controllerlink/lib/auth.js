@@ -8,8 +8,7 @@ module.exports = AuthKey;
 
 var maxDiff = 1000 * 60 * 60;
 
-function AuthKey(homebridge) {
-	var accessKey = "174-39-175";
+function AuthKey(accessKey) {
 	accessKey = accessKey.replace(/-/g, "");
 	this.accessKey = crypto.createHash('sha256').update(accessKey).digest();
 }

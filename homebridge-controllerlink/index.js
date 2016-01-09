@@ -4,6 +4,7 @@
 
 var HomeBridge;
 var Server = require('./lib/Server.js');
+var Config = require('./lib/config');
 
 module.exports = function (homebridge) {
 	HomeBridge = homebridge;
@@ -13,7 +14,8 @@ module.exports = function (homebridge) {
 function HomeBridgeControllerLink(log, config) {
 	this.log = log;
 	this.debug = log.debug;
-	this.server = new Server(HomeBridge, config["port"], this.log);
+	var accessKey = config["accessKey"] || Config.getBridgePin(HomeBridge);
+	this.server = new Server(HomeBridge, config["port"], accessKey, this.log);
 }
 
 HomeBridgeControllerLink.prototype = {
