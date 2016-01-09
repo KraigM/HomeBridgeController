@@ -13,11 +13,11 @@ module.exports = function (homebridge) {
 function HomeBridgeControllerLink(log, config) {
 	this.log = log;
 	this.debug = log.debug;
+	this.server = new Server(HomeBridge, config["port"], this.log);
 }
 
 HomeBridgeControllerLink.prototype = {
 	accessories: function (callback) {
-		this.server = new Server(HomeBridge, null, this.log);
 		this.server.start();
 		callback([]);
 	}

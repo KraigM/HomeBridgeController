@@ -57,6 +57,7 @@ Server.prototype.start = function() {
 		var key = 'hbctrllink';
 		mdns.createAdvertisement(mdns.tcp(key), port).start();
 		this.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
+		this.log("Started HomeBridgeControllerLink on port " + port);
 	}.bind(this));
 };
 
