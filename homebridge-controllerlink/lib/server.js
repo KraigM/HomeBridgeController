@@ -6,6 +6,7 @@ var express = require('express');
 var mdns = require('mdns');
 var loadPlugins = require('./loadPlugins.js');
 var config = require('./config.js');
+var Auth = require('./auth.js');
 
 module.exports = Server;
 
@@ -14,6 +15,8 @@ function Server(homebridge, port, log) {
 	this.port = port || 51828;
 	this.log = log;
 	this.debug = log.debug;
+	var auth = new Auth(homebridge);
+	this.auth = auth;
 
 	var app = express();
 
@@ -21,8 +24,16 @@ function Server(homebridge, port, log) {
 		return function (req, res) {
 			var rtn;
 			try {
-				rtn = func.bind(this)(this.homebridge);
-				rtn.Type = 1;
+				if (!this.auth.verifyToken(req.headers.token)) {
+					res.status(401);
+					rtn = {
+						Type: 2,
+						FullError: "Not authorized"
+					};
+				} else {
+					rtn = func.bind(this)(this.homebridge);
+					rtn.Type = 1;
+				}
 			}
 			catch (err) {
 				rtn = {
@@ -32,7 +43,7 @@ function Server(homebridge, port, log) {
 			}
 			res.send(rtn);
 		}.bind(this);
-	};
+	}.bind(this);
 
 	app.get('/loadPlugins', jsonRtn(loadPlugins));
 	app.get('/config', jsonRtn(config.get));
