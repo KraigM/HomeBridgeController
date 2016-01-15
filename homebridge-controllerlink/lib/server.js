@@ -34,7 +34,7 @@ function Server(homebridge, port, accessKey, log) {
 						FullError: "Not authorized"
 					};
 				} else {
-					rtn = func.bind(this)(this.homebridge);
+					rtn = func.bind(this)(this.homebridge, req);
 					rtn.Type = 1;
 				}
 			}
@@ -50,6 +50,7 @@ function Server(homebridge, port, accessKey, log) {
 
 	app.get('/loadPlugins', jsonRtn(loadPlugins));
 	app.get('/config', jsonRtn(Config.api.get));
+	app.post('/config', jsonRtn(Config.api.put));
 
 	this.app = app;
 }

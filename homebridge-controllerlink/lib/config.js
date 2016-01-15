@@ -67,7 +67,29 @@ Config.prototype.updateAllData = function (data) {
 	} finally {
 		this._filePath = origPath;
 	}
+};
 
+Config.prototype.save = function (path) {
+	var origPath = this._filePath;
+
+	path = path || this._filePath;
+	if (!path) {
+		throw new Error("You must specify a path");
+	}
+
+	var json;
+	delete this._filePath;
+	try {
+		json = JSON.stringify(this);
+	} catch (err) {
+		this._filePath = origPath;
+	}
+
+	fs.writeFileSync(path, json);
+
+	if (!this._filePath) {
+		this._filePath = path;
+	}
 };
 
 Config.loadDefault = function (homebridge) {
@@ -85,4 +107,17 @@ Config.api.get = function (homebridge) {
 		Config: Config.loadDefault(homebridge)
 	};
 };
+Config.api.put = function (homebridge, req) {
+	var updatedConfig = req && req.body && req.body.Config;
+	if (!updatedConfig) {
+		return {
+			Type: 2,
+			Message: "You must specify a config to save"
+		};
+	}
+	var config = new Config(homebridge, updatedConfig);
+	config.save();
+	return Config.api.get(homebridge);
+};
+
 module.exports = Config;
