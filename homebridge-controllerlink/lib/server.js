@@ -7,6 +7,9 @@ var mdns = require('mdns');
 var loadPlugins = require('./loadPlugins.js');
 var config = require('./config.js');
 var Auth = require('./auth.js');
+var Logger = require('./logger');
+
+var logger = new Logger();
 
 module.exports = Server;
 

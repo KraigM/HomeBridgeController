@@ -11,9 +11,11 @@
     "homebridge": ">=0.2.5"
   },
   "dependencies": {
+    "chalk": "^1.1.1",
     "commander": "latest",
     "express": "^4.13.3",
     "homebridge": "^0.2.13",
-    "mdns": "^2.2.11"
+    "mdns": "^2.2.11",
+    "moment": "^2.11.1"
   }
 }
