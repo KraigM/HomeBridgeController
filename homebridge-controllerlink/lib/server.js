@@ -5,7 +5,7 @@
 var express = require('express');
 var mdns = require('mdns');
 var loadPlugins = require('./loadPlugins.js');
-var config = require('./config.js');
+var Config = require('./config');
 var Auth = require('./auth.js');
 var Logger = require('./logger');
 
@@ -49,7 +49,7 @@ function Server(homebridge, port, accessKey, log) {
 	}.bind(this);
 
 	app.get('/loadPlugins', jsonRtn(loadPlugins));
-	app.get('/config', jsonRtn(config.get));
+	app.get('/config', jsonRtn(Config.api.get));
 
 	this.app = app;
 }

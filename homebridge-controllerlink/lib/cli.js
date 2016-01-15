@@ -41,7 +41,7 @@ module.exports = function () {
 		.command('getConfig')
 		.description('Returns the current config file')
 		.action(function () {
-			rtn.json(config.get());
+			rtn.json(config.api.get());
 		});
 
 	program.parse(process.argv);

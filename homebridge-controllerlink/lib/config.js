@@ -33,25 +33,56 @@ var readConfigFile = function (configPath) {
 	}
 };
 
-var getConfig = function (homebridgeOrPath) {
+var copyData = function(from, to) {
+	for (var prop in from) {
+		to[prop] = from[prop];
+	}
+};
+
+var replaceData = function(from, to) {
+	for (var prop in to) {
+		if (from.hasOwnProperty(prop)) {
+			to[prop] = from[prop];
+			delete from[prop];
+		} else {
+			delete to[prop];
+		}
+	}
+	copyData(from, to);
+};
+
+function Config(homebridgeOrPath, data) {
 	var configPath = getConfigPath(homebridgeOrPath);
-	var config = readConfigFile(configPath);
+	if (!data) {
+		data = readConfigFile(configPath);
+	}
+	copyData(data, this);
+	this._filePath = configPath;
+}
+
+Config.prototype.updateAllData = function (data) {
+	var origPath = this._filePath;
+	try {
+		replaceData(data, this);
+	} finally {
+		this._filePath = origPath;
+	}
+
+};
+
+Config.loadDefault = function (homebridge) {
+	var configPath = getConfigPath(homebridge);
+	if (!configPath) {
+		throw new Error("Could not locate default config");
+	}
+	return new Config(configPath);
+};
+
+Config.api = {};
+Config.api.get = function (homebridge) {
 	return {
-		Config: config
+		Type: 1,
+		Config: Config.loadDefault(homebridge)
 	};
 };
-
-var getBridge = function (config) {
-	var cfg = config.Config || getConfig(config).Config;
-	return cfg && cfg.bridge;
-};
-
-var getBridgePin = function (config) {
-	var bdgCfg = getBridge(config);
-	return bdgCfg && bdgCfg.pin;
-};
-
-module.exports = {
-	get: getConfig,
-	getBridgePin: getBridgePin
-};
+module.exports = Config;

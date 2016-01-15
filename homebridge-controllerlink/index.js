@@ -14,7 +14,18 @@ module.exports = function (homebridge) {
 function HomeBridgeControllerLink(log, config) {
 	this.log = log;
 	this.debug = log.debug;
-	var accessKey = config["accessKey"] || Config.getBridgePin(HomeBridge);
+
+	var accessKey = config["accessKey"];
+	if (!accessKey) {
+		var serverConfig = new Config(HomeBridge);
+		accessKey = serverConfig && serverConfig.bridge && serverConfig.bridge.pin;
+	}
+
+	if (!accessKey) {
+		this.log.error("Unable to load server config.  Link will not be established");
+		return;
+	}
+
 	this.server = new Server(HomeBridge, config["port"], accessKey, this.log);
 }
 
