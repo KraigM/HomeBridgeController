@@ -8,6 +8,7 @@ var loadPlugins = require('./loadPlugins.js');
 var Config = require('./config');
 var Auth = require('./auth.js');
 var Logger = require('./logger');
+var bodyParser = require('body-parser');
 
 var logger = new Logger();
 
@@ -22,6 +23,8 @@ function Server(homebridge, port, accessKey, log) {
 	this.auth = auth;
 
 	var app = express();
+
+	app.use(bodyParser.json());
 
 	var jsonRtn = function (func) {
 		return function (req, res) {
