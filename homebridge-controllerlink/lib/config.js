@@ -80,7 +80,7 @@ Config.prototype.save = function (path) {
 	var json;
 	delete this._filePath;
 	try {
-		json = JSON.stringify(this);
+		json = JSON.stringify(this, null, '\t');
 	} catch (err) {
 		this._filePath = origPath;
 	}
