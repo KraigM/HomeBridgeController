@@ -3,7 +3,7 @@
  */
 
 var program = require('commander');
-var loadPlugins = require('./plugins');
+var plugins = require('./plugins');
 var config = require('./config.js');
 var version = require('./version.js');
 
@@ -33,8 +33,7 @@ module.exports = function () {
 		.command('loadPlugins')
 		.description('Loads plugin metadata')
 		.action(function () {
-			var plugins = loadPlugins();
-			rtn.json(plugins);
+			rtn.json(plugins.api.get());
 		});
 
 	program

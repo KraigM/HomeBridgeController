@@ -5,7 +5,7 @@ var version = require('./version.js');
 
 var cache;
 
-module.exports = function () {
+var loadPlugins = function () {
 	if (cache) {
 		return cache;
 	}
@@ -61,3 +61,10 @@ module.exports = function () {
 	};
 	return cache;
 };
+
+module.exports = {
+	loadPlugins: loadPlugins
+};
+
+module.exports.api = { };
+module.exports.api.get = loadPlugins;
