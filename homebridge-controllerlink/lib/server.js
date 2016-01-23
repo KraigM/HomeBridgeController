@@ -4,7 +4,7 @@
 
 var express = require('express');
 var mdns = require('mdns');
-var loadPlugins = require('./loadPlugins.js');
+var loadPlugins = require('./plugins');
 var Config = require('./config');
 var Auth = require('./auth.js');
 var Logger = require('./logger');

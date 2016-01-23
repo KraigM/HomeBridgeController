@@ -3,7 +3,7 @@
  */
 
 var program = require('commander');
-var loadPlugins = require('./loadPlugins.js');
+var loadPlugins = require('./plugins');
 var config = require('./config.js');
 var version = require('./version.js');
 
