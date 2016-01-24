@@ -64,7 +64,9 @@ var loadPlugins = function () {
 	return cache;
 };
 
-var npmCLI = { };
+var npmCLI = {
+	global: true
+};
 var npmInitAsync = function (log, next) {
 	return new Promise(function(resolve, reject) {
 		npm.load(npmCLI, function (err) {
