@@ -9,6 +9,7 @@ var Config = require('./config');
 var Auth = require('./auth.js');
 var Logger = require('./logger');
 var bodyParser = require('body-parser');
+var Promise = require('promise');
 
 var logger = new Logger();
 
@@ -27,28 +28,39 @@ function Server(homebridge, port, accessKey, log) {
 	app.use(bodyParser.json());
 
 	var jsonRtn = function (func) {
+		var self = this;
 		return function (req, res) {
-			var rtn;
-			try {
-				if (!this.auth.verifyToken(req.headers.token)) {
+			new Promise(function(resolve, reject){
+				if (!self.auth.verifyToken(req && req.headers && req.headers.token)) {
 					res.status(401);
-					rtn = {
-						Type: 2,
-						FullError: "Not authorized"
-					};
+					reject("Not authorized");
 				} else {
-					rtn = func.bind(this)(this.homebridge, req);
-					rtn.Type = 1;
+					resolve(func.bind(self)(self.homebridge, req, self.log));
 				}
-			}
-			catch (err) {
-				rtn = {
-					Type: 2,
-					FullError: err
-				};
-			}
-			res.send(rtn);
-		}.bind(this);
+			})
+				.then(function(rtn){
+					if (rtn && !rtn.Type) {
+						rtn.Type = 1;
+					}
+					return rtn;
+				})
+				.catch(function(err){
+					var rtn = {
+						Type: 2
+					};
+					if (err instanceof String) {
+						rtn.Message = err;
+					} else if (err) {
+						rtn.Type = err.Type || rtn.Type;
+						rtn.Message = err.message || err.Message;
+						rtn.FullError = err.FullError || err.toString();
+					}
+					return rtn;
+				})
+				.done(function(rtn){
+					res.send(rtn);
+				});
+		};
 	}.bind(this);
 
 	app.get('/plugins', jsonRtn(plugins.api.get));
