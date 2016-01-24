@@ -240,11 +240,52 @@ var reloadAvailablePluginsAsync = function(log){
 	});
 };
 
+var installPluginAsync = function(plugin, version, log) {
+	return npmInitAsync(log, function(resolve, reject) {
+		var pluginSpec = plugin;
+		if (version) pluginSpec += "@" + version;
+		npm.commands.install([pluginSpec], function (err, data) {
+			if (err) return reject(err);
+			cache = null;
+			resolve(data);
+		});
+	});
+};
+
 module.exports = {
 	loadPlugins: loadPlugins,
+	installPluginAsync: installPluginAsync,
 	getAvailablePluginsAsync: getAvailablePluginsAsync
 };
 
 module.exports.api = { };
 module.exports.api.get = loadPlugins;
 module.exports.api.getAvailableAsync = getAvailablePluginsAsync;
+module.exports.api.installAsync = function (homebridge, req, log) {
+	var plugin = req && req.body && req.body.Plugin;
+	if (!plugin) {
+		return {
+			Type: 2,
+			Message: "You must specify a plugin to install or update"
+		};
+	}
+	var version = req.body.Version;
+	return installPluginAsync(plugin, version, log)
+		.then(function (modules) {
+			var rtn = {
+				Type: 1,
+				InstalledModules: modules
+			};
+			var installedPlugins = loadPlugins().Plugins;
+			if (installedPlugins) {
+				for (var i = 0; i < installedPlugins.length; i++) {
+					var p = installedPlugins[i];
+					if (p.Name == plugin) {
+						rtn.Plugin = p;
+						break;
+					}
+				}
+			}
+			return rtn;
+		});
+};
