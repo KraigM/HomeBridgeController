@@ -10,7 +10,9 @@ var util = require('util');
 module.exports = function (timeFormat) {
 	if (console.__ts__) return;
 
-	var log_file = fs.createWriteStream(__dirname + '/debug.log', {flags : 'w'});
+	var logsDir = __dirname + '/../../logs/';
+	if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
+	var log_file = fs.createWriteStream(logsDir + 'debug.log', {flags : 'w'});
 
 	var format = timeFormat || 'YYYY-MM-DD HH:mm:ss';
 
