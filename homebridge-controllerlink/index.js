@@ -3,7 +3,7 @@
  */
 
 var HomeBridge;
-var Server = require('./lib/Server.js');
+var Server = require('./lib/server.js');
 var Config = require('./lib/config');
 
 module.exports = function (homebridge) {
