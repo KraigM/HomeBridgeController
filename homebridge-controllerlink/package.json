@@ -1,6 +1,6 @@
 {
   "name": "homebridge-controllerlink",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "NodeJS connection to HomeBridgeController",
   "preferGlobal": true,
   "keywords": [
@@ -11,9 +11,12 @@
     "homebridge": ">=0.2.5"
   },
   "dependencies": {
+    "body-parser": "latest",
     "commander": "latest",
     "express": "^4.13.3",
     "homebridge": "^0.2.13",
-    "mdns": "^2.2.11"
+    "mdns": "^2.2.11",
+    "npm": "^3.5.3",
+    "promise": "^7.1.1"
   }
 }
