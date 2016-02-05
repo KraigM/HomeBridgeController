@@ -7,11 +7,11 @@ var mdns = require('mdns');
 var plugins = require('./plugins');
 var Config = require('./config');
 var Auth = require('./auth.js');
-var Logger = require('./logger');
+//var Logger = require('./logger');
 var bodyParser = require('body-parser');
 var Promise = require('promise');
 
-var logger = new Logger();
+//var logger = new Logger();
 
 module.exports = Server;
 
