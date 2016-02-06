@@ -2,8 +2,8 @@ var Loader = require('./loader.js');
 var Plugin = Loader.Plugin;
 var API = Loader.API;
 var version = require('./version.js');
-var npm = require('npm');
-var Promise = require('promise');
+var npm = require('./npm');
+var Promise = require('bluebird');
 
 var cache;
 
@@ -64,23 +64,6 @@ var loadPlugins = function () {
 	return cache;
 };
 
-var npmCLI = {
-	global: true
-};
-var npmInitAsync = function (log, next) {
-	return new Promise(function(resolve, reject) {
-		npm.load(npmCLI, function (err) {
-			if (err) {
-				reject(err);
-				return;
-			}
-			npm.on('log', log.debug);
-			if (next) next(resolve, reject);
-			else resolve();
-		});
-	});
-};
-
 var availablePlugins = {
 	Known: [
 		'homebridge-alarmdotcom',
@@ -89,6 +72,7 @@ var availablePlugins = {
 		'homebridge-better-http-rgb',
 		'homebridge-cmd',
 		'homebridge-connectedbytcp',
+		'homebridge-controllerlink',
 		'homebridge-domotiga',
 		'homebridge-ds18b20',
 		'homebridge-dummy',
@@ -194,39 +178,30 @@ var formatAvailablePlugins = function() {
 	var data = availablePlugins.Data;
 	var arr = [];
 	for (var k in data) {
-		var pkg = data[k];
-		for (var v in pkg) {
-			arr.push(pkg[v]);
-		}
+		arr.push(data[k]);
 	}
 	return {
 		AvailablePlugins: arr
 	};
 };
+
 var refreshAvailablePluginsAsync = function(log) {
-	var startDT;
-	return npmInitAsync(log)
-		.then(function () {
-			startDT = Date.now();
-			var task = null;
-			availablePlugins.Known.forEach(function (id) {
-				var t = new Promise(function (resolve, reject) {
-					log.debug("Refreshing " + id);
-					npm.commands.view([id], function (err, data) {
-						if (err) return reject(err);
+	return npm.init()
+		.then(function(){
+			return Promise.map(availablePlugins.Known, function(id) {
+				log.debug("Refreshing npm data for : " + id);
+				return npm.view(id)
+					.then(function(data) {
 						if (!availablePlugins.Data) availablePlugins.Data = {};
 						availablePlugins.Data[id] = data;
-						resolve();
 					});
-				});
-				task = !task ? t : task.then(function () { return t; });
 			});
-			return task;
 		})
-		.then(function () {
-			availablePlugins.LastRefresh = startDT;
+		.then(function(){
+			log.debug("Finished refreshAvailablePluginsAsync");
 		});
 };
+
 var reloadAvailablePluginsAsync = function(log){
 	return npmInitAsync(log, function(resolve, reject) {
 		var searchFn = npm.commands.search;

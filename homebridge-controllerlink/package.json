@@ -11,9 +11,11 @@
     "homebridge": ">=0.2.5"
   },
   "dependencies": {
+    "bluebird": "^3.2.2",
     "body-parser": "latest",
     "commander": "latest",
     "express": "^4.13.3",
+    "lodash": "^4.2.1",
     "mdns": "^2.2.11",
     "npm": "^3.5.3",
     "promise": "^7.1.1"
