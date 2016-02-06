@@ -38,3 +38,13 @@ test('#getAvailablePluginsAsync', function(done) {
 		});
 	finish(task, done);
 });
+
+test('#installPluginAsync', function(done) {
+	var log = console.log;
+	log.debug = console.log;
+	var task = plugins.installPluginAsync('homebridge-lono', log)
+		.then(function(data){
+			//TODO: verify installation
+		});
+	finish(task, done);
+});

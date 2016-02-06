@@ -23,6 +23,8 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var npm = Promise.promisifyAll(require('npm'));
+var npmi = Promise.promisify(require('npmi'));
+var path = require('path');
 
 var initialized = false;
 
@@ -78,6 +80,41 @@ module.exports = {
 				var RegistryClient = require('npm/node_modules/npm-registry-client');
 				npm.registry = new RegistryClient(npm.registry.config);
 				return initialized = true;
+			});
+	},
+
+	install: function(id, options, log) {
+		if (options && !log && typeof options === 'function') {
+			log = options;
+			options = {};
+		}
+		if (!log) log = function() { };
+
+		var msg = "npm version : " + npmi.NPM_VERSION;
+		// prints the installed npm version used by npmi
+		log.debug(msg);
+
+		var opts = {
+			name: id,	// your module name
+			version: options.version || 'latest',		// expected version [default: 'latest']
+			path: options.path || '.',				// installation path [default: '.']
+			forceInstall: false,	// force install if set to true (even if already installed, it will do a reinstall) [default: false]
+			npmLoad: {				// npm.load(options, callback): this is the "options" given to npm.load()
+				loglevel: 'silent'	// [default: {loglevel: 'silent'}]
+			}
+		};
+		return npmi(opts)
+			.catch(function(err){
+				var msg;
+				if (err.code === npmi.LOAD_ERR) msg = 'npm load error';
+				else if (err.code === npmi.INSTALL_ERR) msg = 'npm install error';
+				else msg = err.message;
+				throw new Error(msg);
+			})
+			.then(function (didInstall) {
+				var installMessage = didInstall ? ' installed successfully in ' : ' already installed in ';
+				log(opts.name + '@' + opts.version + installMessage + path.resolve(opts.path));
+				return didInstall;
 			});
 	},
 
