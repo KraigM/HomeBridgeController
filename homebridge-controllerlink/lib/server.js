@@ -68,6 +68,7 @@ function Server(homebridge, port, accessKey, log) {
 	app.get('/plugins/available', jsonRtn(plugins.api.getAvailableAsync));
 	app.get('/config', jsonRtn(Config.api.get));
 	app.post('/config', jsonRtn(Config.api.put));
+	app.get('/ping', jsonRtn(function(){ return {}; }));
 
 	this.app = app;
 }
