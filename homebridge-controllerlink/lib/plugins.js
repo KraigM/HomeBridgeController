@@ -2,8 +2,10 @@ var Loader = require('./loader.js');
 var Plugin = Loader.Plugin;
 var API = Loader.API;
 var version = require('./version.js');
-var npm = require('npm');
-var Promise = require('promise');
+var npm = require('./npm');
+var Promise = require('bluebird');
+var _ = require('lodash');
+var path = require('path');
 
 var cache;
 
@@ -31,7 +33,8 @@ var loadPlugins = function () {
 	}.bind(api);
 
 	// load and validate plugins - check for valid package.json, etc.
-	Plugin.installed().forEach(function (plugin) {
+	var installedPlugins = Plugin.installed();
+	installedPlugins.forEach(function (plugin) {
 		accList = [];
 		platList = [];
 
@@ -64,23 +67,6 @@ var loadPlugins = function () {
 	return cache;
 };
 
-var npmCLI = {
-	global: true
-};
-var npmInitAsync = function (log, next) {
-	return new Promise(function(resolve, reject) {
-		npm.load(npmCLI, function (err) {
-			if (err) {
-				reject(err);
-				return;
-			}
-			npm.on('log', log.debug);
-			if (next) next(resolve, reject);
-			else resolve();
-		});
-	});
-};
-
 var availablePlugins = {
 	Known: [
 		'homebridge-alarmdotcom',
@@ -89,6 +75,7 @@ var availablePlugins = {
 		'homebridge-better-http-rgb',
 		'homebridge-cmd',
 		'homebridge-connectedbytcp',
+		'homebridge-controllerlink',
 		'homebridge-domotiga',
 		'homebridge-ds18b20',
 		'homebridge-dummy',
@@ -194,39 +181,30 @@ var formatAvailablePlugins = function() {
 	var data = availablePlugins.Data;
 	var arr = [];
 	for (var k in data) {
-		var pkg = data[k];
-		for (var v in pkg) {
-			arr.push(pkg[v]);
-		}
+		arr.push(data[k]);
 	}
 	return {
 		AvailablePlugins: arr
 	};
 };
+
 var refreshAvailablePluginsAsync = function(log) {
-	var startDT;
-	return npmInitAsync(log)
-		.then(function () {
-			startDT = Date.now();
-			var task = null;
-			availablePlugins.Known.forEach(function (id) {
-				var t = new Promise(function (resolve, reject) {
-					log.debug("Refreshing " + id);
-					npm.commands.view([id], function (err, data) {
-						if (err) return reject(err);
+	return npm.init()
+		.then(function(){
+			return Promise.map(availablePlugins.Known, function(id) {
+				log.debug("Refreshing npm data for : " + id);
+				return npm.view(id)
+					.then(function(data) {
 						if (!availablePlugins.Data) availablePlugins.Data = {};
 						availablePlugins.Data[id] = data;
-						resolve();
 					});
-				});
-				task = !task ? t : task.then(function () { return t; });
 			});
-			return task;
 		})
-		.then(function () {
-			availablePlugins.LastRefresh = startDT;
+		.then(function(){
+			log.debug("Finished refreshAvailablePluginsAsync");
 		});
 };
+
 var reloadAvailablePluginsAsync = function(log){
 	return npmInitAsync(log, function(resolve, reject) {
 		var searchFn = npm.commands.search;
@@ -242,15 +220,77 @@ var reloadAvailablePluginsAsync = function(log){
 	});
 };
 
-var installPluginAsync = function(plugin, version, log) {
-	return npmInitAsync(log, function(resolve, reject) {
-		var pluginSpec = plugin;
-		if (version) pluginSpec += "@" + version;
-		npm.commands.install([pluginSpec], function (err, data) {
-			if (err) return reject(err);
-			cache = null;
-			resolve(data);
+var installPluginAsync = function(plugin, options, log) {
+	if (options && !log && typeof options === 'function') {
+		log = options;
+		options = null;
+	}
+	if (!options){
+		options = {};
+	}
+	var installDirTask = determineInstallDirAsync(plugin, options, log);
+	return npm.init()
+		.then(function(){
+			return installDirTask;
+		})
+		.then(function(pkgDir){
+			log.debug("Installing " + plugin + " plugin at " + pkgDir);
+			options.path = pkgDir;
+			return npm.install(plugin, options, log);
+		})
+		.then(function(didInstall) {
+			if (didInstall) cache = null;
+			//if (!availablePlugins.Data) availablePlugins.Data = {};
+			//availablePlugins.Data[plugin] = data;
+			log.debug("Finished installPluginAsync");
 		});
+};
+
+var determineInstallDirAsync = function(plugin, options, log) {
+	return new Promise(function(resolve,reject){
+		var checkDir = function(dir, modulesOptional) {
+			if (!dir) return false;
+			try {
+				dir = path.resolve(dir);
+			} catch (err) {
+				log.debug("Error checking path (" + dir + "): "+ err);
+				return false;
+			}
+			if (dir.endsWith('/')) {
+				dir = dir.substr(0, dir.length - 1);
+			}
+			if (dir.endsWith('/node_modules')) {
+				dir = dir + '/..';
+			} else if (!modulesOptional) {
+				return false;
+			}
+			resolve(dir);
+			return true;
+		};
+
+		// Always use current path if already installed
+		var res = loadPlugins();
+		var currentPlugins = res && res.Plugins;
+		if (currentPlugins && currentPlugins.length > 0) {
+			var cur = _.find(currentPlugins, function(p) { return p.Name == plugin; });
+			if (cur && cur.Path) {
+				if (checkDir(cur.Path + "/..")) return;
+			}
+		}
+
+		// If specified, use options path
+		if (options.path && checkDir(options.path, true)) return;
+
+		// Fallback to this plugin's install dir
+		if (checkDir(__dirname + "/../..", true)) {
+
+		} else {
+			reject(new Error("Unable to determine install path"));
+		}
+
+		var pkgDir = path.resolve(__dirname + "/../..");
+		if (pkgDir.endsWith('/node_modules')) pkgDir += "/..";
+
 	});
 };
 
@@ -271,8 +311,9 @@ module.exports.api.installAsync = function (homebridge, req, log) {
 			Message: "You must specify a plugin to install or update"
 		};
 	}
-	var version = req.body.Version;
-	return installPluginAsync(plugin, version, log)
+	return installPluginAsync(plugin, {
+		version: req.body.Version
+	}, log)
 		.then(function (modules) {
 			var rtn = {
 				Type: 1,
