@@ -53,7 +53,7 @@ function Server(homebridge, port, accessKey, log) {
 					} else if (err) {
 						rtn.Type = err.Type || rtn.Type;
 						rtn.Message = err.message || err.Message;
-						rtn.FullError = err.FullError || err.toString();
+						rtn.FullError = err.FullError || err.stack;
 					}
 					return rtn;
 				})
