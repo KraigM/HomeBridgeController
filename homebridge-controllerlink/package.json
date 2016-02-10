@@ -1,10 +1,17 @@
 {
   "name": "homebridge-controllerlink",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "NodeJS connection to HomeBridgeController",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kraigm/homebridgecontroller.git"
+  },
+  "license": "ISC",
   "preferGlobal": true,
   "keywords": [
-    "homebridge-plugin"
+    "homebridge-plugin",
+    "homebridgecontroller",
+    "controller"
   ],
   "engines": {
     "node": ">=0.12.0",
