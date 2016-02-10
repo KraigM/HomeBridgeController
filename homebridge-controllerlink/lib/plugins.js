@@ -246,6 +246,17 @@ var installPluginAsync = function(plugin, options, log) {
 		});
 };
 
+var strEndsWith;
+if (typeof String.prototype.endsWith !== 'function') {
+	strEndsWith = function(str, suffix) {
+		return str.indexOf(suffix, this.length - suffix.length) !== -1;
+	};
+} else {
+	strEndsWith = function(str, suffix) {
+		return str.endsWith(suffix);
+	};
+}
+
 var determineInstallDirAsync = function(plugin, options, log) {
 	return new Promise(function(resolve,reject){
 		var checkDir = function(dir, modulesOptional) {
@@ -256,10 +267,10 @@ var determineInstallDirAsync = function(plugin, options, log) {
 				log.debug("Error checking path (" + dir + "): "+ err);
 				return false;
 			}
-			if (dir.endsWith('/')) {
+			if (strEndsWith(dir, '/')) {
 				dir = dir.substr(0, dir.length - 1);
 			}
-			if (dir.endsWith('/node_modules')) {
+			if (strEndsWith(dir, '/node_modules')) {
 				dir = dir + '/..';
 			} else if (!modulesOptional) {
 				return false;
@@ -282,15 +293,9 @@ var determineInstallDirAsync = function(plugin, options, log) {
 		if (options.path && checkDir(options.path, true)) return;
 
 		// Fallback to this plugin's install dir
-		if (checkDir(__dirname + "/../..", true)) {
-
-		} else {
+		if (!checkDir(__dirname + "/../..", true)) {
 			reject(new Error("Unable to determine install path"));
 		}
-
-		var pkgDir = path.resolve(__dirname + "/../..");
-		if (pkgDir.endsWith('/node_modules')) pkgDir += "/..";
-
 	});
 };
 
