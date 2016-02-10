@@ -293,15 +293,9 @@ var determineInstallDirAsync = function(plugin, options, log) {
 		if (options.path && checkDir(options.path, true)) return;
 
 		// Fallback to this plugin's install dir
-		if (checkDir(__dirname + "/../..", true)) {
-
-		} else {
+		if (!checkDir(__dirname + "/../..", true)) {
 			reject(new Error("Unable to determine install path"));
 		}
-
-		var pkgDir = path.resolve(__dirname + "/../..");
-		if (pkgDir.endsWith('/node_modules')) pkgDir += "/..";
-
 	});
 };
 
