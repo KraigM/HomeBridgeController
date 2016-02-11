@@ -10,6 +10,7 @@ var Auth = require('./auth.js');
 //var Logger = require('./logger');
 var bodyParser = require('body-parser');
 var Promise = require('promise');
+var Hub = require('./hub');
 
 //var logger = new Logger();
 
@@ -68,6 +69,7 @@ function Server(homebridge, port, accessKey, log) {
 	app.get('/plugins/available', jsonRtn(plugins.api.getAvailableAsync));
 	app.get('/config', jsonRtn(Config.api.get));
 	app.post('/config', jsonRtn(Config.api.put));
+	app.get('/hub', jsonRtn(Hub.api.get));
 	app.get('/ping', jsonRtn(function(){ return {}; }));
 
 	this.app = app;
