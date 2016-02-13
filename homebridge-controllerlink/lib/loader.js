@@ -26,12 +26,10 @@ function findLibDirectory() {
 
 var lib = findLibDirectory();
 
-var pkgPath = Path.join(lib, '..', 'package.json');
-var pkgFile = fs.readFileSync(pkgPath).toString();
-var pkg = JSON.parse(pkgFile);
+var pkgDir = Path.resolve(Path.join(lib, '..'));
 
 module.exports = {
-	pkg: pkg,
+	ModuleDirectory: pkgDir,
 	Plugin: require(Path.join(lib, 'plugin.js')).Plugin,
 	API: require(Path.join(lib, 'api.js')).API,
 	User: require(Path.join(lib, 'user.js')).User
