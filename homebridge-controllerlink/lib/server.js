@@ -91,7 +91,7 @@ Server.prototype.startAsync = function() {
 	var self = this;
 	return Promise.all([
 		listenAsync(this.app, this.port),
-		Hub.getHubInfoAsync(this.log)
+		Hub.getHubInfoAsync(this.homebridge, this.log)
 	])
 		.then(function(results) {
 			self.server = results[0];
