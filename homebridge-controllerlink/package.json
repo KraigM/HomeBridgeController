@@ -24,8 +24,7 @@
     "express": "^4.13.3",
     "lodash": "^4.2.1",
     "mdns": "^2.2.11",
-    "npmi": "^2.0.1-alpha",
-    "promise": "^7.1.1"
+    "npmi": "^2.0.1-alpha"
   },
   "devDependencies": {
     "homebridge": "^0.2.13"

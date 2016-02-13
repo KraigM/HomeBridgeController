@@ -9,7 +9,7 @@ var Config = require('./config');
 var Auth = require('./auth.js');
 //var Logger = require('./logger');
 var bodyParser = require('body-parser');
-var Promise = require('promise');
+var Promise = require('bluebird');
 var Hub = require('./hub');
 
 //var logger = new Logger();
