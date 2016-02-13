@@ -76,13 +76,29 @@ function Server(homebridge, port, accessKey, log) {
 	this.app = app;
 }
 
+var listenAsync = function(app, port) {
+	return new Promise(function(resolve, reject){
+		var server = app.listen(port, function() {
+			resolve(server);
+		});
+	});
+};
+
 Server.prototype.start = function () {
-	this.server = this.app.listen(this.port, function () {
-		var port = this.server.address().port;
-		var key = 'hbctrllink';
-		mdns.createAdvertisement(mdns.tcp(key), port).start();
-		this.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
-		this.log("Started HomeBridgeControllerLink on port " + port);
-	}.bind(this));
+	this.startAsync();
+};
+Server.prototype.startAsync = function() {
+	var self = this;
+	return listenAsync(this.app, this.port)
+		.then(function(server){
+			self.server = server;
+			var port = self.server.address().port;
+			self.log("Started HomeBridgeControllerLink on port " + port);
+
+			const key = 'hbctrllink';
+			mdns.createAdvertisement(mdns.tcp(key), port, {
+			}).start();
+			self.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
+		});
 };
 
