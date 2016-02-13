@@ -89,14 +89,19 @@ Server.prototype.start = function () {
 };
 Server.prototype.startAsync = function() {
 	var self = this;
-	return listenAsync(this.app, this.port)
-		.then(function(server){
-			self.server = server;
+	return Promise.all([
+		listenAsync(this.app, this.port),
+		Hub.getHubInfoAsync(this.log)
+	])
+		.then(function(results) {
+			self.server = results[0];
 			var port = self.server.address().port;
 			self.log("Started HomeBridgeControllerLink on port " + port);
 
+			var info = results[1];
 			const key = 'hbctrllink';
 			mdns.createAdvertisement(mdns.tcp(key), port, {
+				txtRecord: info
 			}).start();
 			self.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
 		});
