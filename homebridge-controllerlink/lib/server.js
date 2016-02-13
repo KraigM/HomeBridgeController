@@ -70,6 +70,7 @@ function Server(homebridge, port, accessKey, log) {
 	app.get('/config', jsonRtn(Config.api.get));
 	app.post('/config', jsonRtn(Config.api.put));
 	app.get('/hub', jsonRtn(Hub.api.get));
+	app.post('/hub', jsonRtn(Hub.api.installAsync));
 	app.get('/ping', jsonRtn(function(){ return {}; }));
 
 	this.app = app;

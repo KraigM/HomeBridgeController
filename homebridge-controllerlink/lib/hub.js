@@ -10,6 +10,7 @@ var Promise = require('bluebird');
 var fsAsync = {
 	readFileAsync: Promise.promisify(fs.readFile)
 };
+var hubModuleId = "homebridge";
 
 var getHubPackageInfoAsync = function(log) {
 	var pkgDir = Loader.ModuleDirectory;
@@ -24,7 +25,7 @@ var getHubPackageInfoAsync = function(log) {
 var getLatestHomeBridgeVersionAsync = function(log) {
 	return npm.init()
 		.then(function(){
-			var id = "homebridge";
+			var id = hubModuleId;
 			log.debug("Refreshing npm data for : " + id);
 			return npm.view(id, 'version');
 		});
@@ -43,7 +44,37 @@ var getHubInfoAsync = function(log) {
 		});
 };
 
+var installHubUpdateAsync = function(options, log) {
+	var id = hubModuleId;
+	if (options && !log && typeof options === 'function') {
+		log = options;
+		options = null;
+	}
+	if (!options) {
+		options = {};
+	}
+
+	var pkgDir = Loader.ModuleDirectory;
+	if (!pkgDir || !fs.existsSync(pkgDir)){
+		throw new Error("Invalid HomeBridge module directory");
+	}
+
+	var pkgParent = path.resolve(path.join(pkgDir, '..'));
+	var pkgRoot = pkgParent && path.resolve(path.join(pkgParent, '..'));
+	if (!pkgParent || !pkgRoot || path.basename(pkgParent) != 'node_modules') {
+		throw new Error("HomeBridge must be installed via npm in order to upgrade");
+	}
+
+	return npm.init()
+		.then(function(){
+			log.debug("Installing " + id + " plugin at " + pkgDir);
+			options.path = pkgRoot;
+			return npm.install(id, options, log);
+		});
+};
+
 module.exports = {
+	installHubUpdateAsync: installHubUpdateAsync,
 	getHubInfoAsync: getHubInfoAsync,
 	getLatestHomeBridgeVersionAsync: getLatestHomeBridgeVersionAsync
 };
@@ -56,5 +87,22 @@ module.exports.api.get = function(hb, req, log) {
 				Type: 1,
 				Info: info
 			};
+		});
+};
+module.exports.api.installAsync = function (homebridge, req, log) {
+	var rtn;
+	return installHubUpdateAsync({
+		version: req && req.body && req.body.Version
+	}, log)
+		.then(function (modules) {
+			rtn = {
+				Type: 1,
+				InstalledModules: modules
+			};
+			return getHubInfoAsync(log);
+		})
+		.then(function(info){
+			rtn.Info = info;
+			return rtn;
 		});
 };
