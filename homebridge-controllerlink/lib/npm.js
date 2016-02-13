@@ -22,8 +22,10 @@
 
 var _ = require('lodash');
 var Promise = require('bluebird');
-var npm = Promise.promisifyAll(require('npm'));
 var npmi = Promise.promisify(require('npmi'));
+const npmPath = 'npmi/node_modules/npm';
+const npmRegistryPath = npmPath + '/node_modules/npm-registry-client';
+var npm = Promise.promisifyAll(require(npmPath));
 var path = require('path');
 
 var initialized = false;
@@ -77,7 +79,7 @@ module.exports = {
 			.then(function () {
 				rawPromisify(npm.commands);
 				// Force non "cached" version of client as "cached" version seems to have issues atm
-				var RegistryClient = require('npm/node_modules/npm-registry-client');
+				var RegistryClient = require(npmRegistryPath);
 				npm.registry = new RegistryClient(npm.registry.config);
 				return initialized = true;
 			});
