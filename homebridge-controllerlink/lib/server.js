@@ -98,10 +98,13 @@ Server.prototype.startAsync = function() {
 			var port = self.server.address().port;
 			self.log("Started HomeBridgeControllerLink on port " + port);
 
-			var info = results[1];
+			var info = results[1] || {};
 			const key = 'hbctrllink';
 			mdns.createAdvertisement(mdns.tcp(key), port, {
-				txtRecord: info
+				txtRecord: {
+					Version: info.Version,
+					Name: info.Name
+				}
 			}).start();
 			self.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
 		});
