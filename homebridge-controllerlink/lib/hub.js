@@ -3,10 +3,12 @@
  */
 
 var Loader = require('./loader.js');
+var Config = require('./config');
 var npm = require('./npm.js');
 var fs = require('fs');
 var path = require('path');
 var Promise = require('bluebird');
+var os = require('./os');
 var fsAsync = {
 	readFileAsync: Promise.promisify(fs.readFile)
 };
@@ -31,15 +33,18 @@ var getLatestHomeBridgeVersionAsync = function(log) {
 		});
 };
 
-var getHubInfoAsync = function(log) {
+var getHubInfoAsync = function(hb, log) {
 	return Promise.all([
 		getHubPackageInfoAsync(log),
-		getLatestHomeBridgeVersionAsync(log)
+		getLatestHomeBridgeVersionAsync(log),
+		Promise.resolve(new Config(hb))
 	])
-		.then(function(version){
+		.then(function(results){
 			return {
-				Version: version[0].version,
-				LatestVersion: version[1]
+				Name: results[2].bridge.name,
+				OS: os.current.Type,
+				Version: results[0].version,
+				LatestVersion: results[1]
 			};
 		});
 };
@@ -81,7 +86,7 @@ module.exports = {
 
 module.exports.api = {};
 module.exports.api.get = function(hb, req, log) {
-	return getHubInfoAsync(log)
+	return getHubInfoAsync(hb, log)
 		.then(function(info){
 			return {
 				Type: 1,
@@ -89,7 +94,7 @@ module.exports.api.get = function(hb, req, log) {
 			};
 		});
 };
-module.exports.api.installAsync = function (homebridge, req, log) {
+module.exports.api.installAsync = function (hb, req, log) {
 	var rtn;
 	return installHubUpdateAsync({
 		version: req && req.body && req.body.Version
@@ -99,7 +104,7 @@ module.exports.api.installAsync = function (homebridge, req, log) {
 				Type: 1,
 				InstalledModules: modules
 			};
-			return getHubInfoAsync(log);
+			return getHubInfoAsync(hb, log);
 		})
 		.then(function(info){
 			rtn.Info = info;

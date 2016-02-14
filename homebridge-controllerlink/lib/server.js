@@ -9,7 +9,7 @@ var Config = require('./config');
 var Auth = require('./auth.js');
 //var Logger = require('./logger');
 var bodyParser = require('body-parser');
-var Promise = require('promise');
+var Promise = require('bluebird');
 var Hub = require('./hub');
 
 //var logger = new Logger();
@@ -76,13 +76,38 @@ function Server(homebridge, port, accessKey, log) {
 	this.app = app;
 }
 
+var listenAsync = function(app, port) {
+	return new Promise(function(resolve, reject){
+		var server = app.listen(port, function() {
+			resolve(server);
+		});
+	});
+};
+
 Server.prototype.start = function () {
-	this.server = this.app.listen(this.port, function () {
-		var port = this.server.address().port;
-		var key = 'hbctrllink';
-		mdns.createAdvertisement(mdns.tcp(key), port).start();
-		this.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
-		this.log("Started HomeBridgeControllerLink on port " + port);
-	}.bind(this));
+	this.startAsync();
+};
+Server.prototype.startAsync = function() {
+	var self = this;
+	return Promise.all([
+		listenAsync(this.app, this.port),
+		Hub.getHubInfoAsync(this.homebridge, this.log)
+	])
+		.then(function(results) {
+			self.server = results[0];
+			var port = self.server.address().port;
+			self.log("Started HomeBridgeControllerLink on port " + port);
+
+			var info = results[1] || {};
+			const key = 'hbctrllink';
+			mdns.createAdvertisement(mdns.tcp(key), port, {
+				txtRecord: {
+					Version: info.Version,
+					OS: info.OS,
+					Name: info.Name
+				}
+			}).start();
+			self.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
+		});
 };
 
