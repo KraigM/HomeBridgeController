@@ -6,6 +6,7 @@ var npm = require('./npm');
 var Promise = require('bluebird');
 var _ = require('lodash');
 var path = require('path');
+var fs = require('fs');
 
 var cache;
 
@@ -50,10 +51,13 @@ var loadPlugins = function () {
 		// call the plugin's initializer and pass it our API instance
 		plugin.initializer(api);
 
-		var info = {};
+		var pkgPath = path.join(plugin.pluginPath, 'package.json');
+		var pkgFile = fs.readFileSync(pkgPath).toString();
+		var pkgMeta = JSON.parse(pkgFile);
+		var info = formatRawPluginData(pkgMeta);
+
 		info.Path = plugin.pluginPath;
-		info.Version = version(info.Path);
-		info.Name = plugin.name();
+
 		info.Accessories = accList;
 		info.Platforms = platList;
 		plugins.push(info);
@@ -93,10 +97,18 @@ var formatAvailablePlugins = function() {
 	var data = availablePlugins.Data;
 	var arr = [];
 	for (var k in data) {
-		arr.push(data[k]);
+		arr.push(formatRawPluginData(data[k]));
 	}
 	return {
 		AvailablePlugins: arr
+	};
+};
+var formatRawPluginData = function(data) {
+	return data && {
+		Name: data.name,
+		Description: data.description,
+		Version: data.version,
+		HomePage: data.homepage
 	};
 };
 
