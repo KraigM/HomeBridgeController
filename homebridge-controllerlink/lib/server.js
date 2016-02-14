@@ -103,6 +103,7 @@ Server.prototype.startAsync = function() {
 			mdns.createAdvertisement(mdns.tcp(key), port, {
 				txtRecord: {
 					Version: info.Version,
+					OS: info.OS,
 					Name: info.Name
 				}
 			}).start();

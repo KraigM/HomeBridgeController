@@ -8,6 +8,7 @@ var npm = require('./npm.js');
 var fs = require('fs');
 var path = require('path');
 var Promise = require('bluebird');
+var os = require('./os');
 var fsAsync = {
 	readFileAsync: Promise.promisify(fs.readFile)
 };
@@ -41,6 +42,7 @@ var getHubInfoAsync = function(hb, log) {
 		.then(function(results){
 			return {
 				Name: results[2].bridge.name,
+				OS: os.current.Type,
 				Version: results[0].version,
 				LatestVersion: results[1]
 			};
