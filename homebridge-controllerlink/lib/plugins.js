@@ -6,6 +6,7 @@ var npm = require('./npm');
 var Promise = require('bluebird');
 var _ = require('lodash');
 var path = require('path');
+var fs = require('fs');
 
 var cache;
 
@@ -50,10 +51,13 @@ var loadPlugins = function () {
 		// call the plugin's initializer and pass it our API instance
 		plugin.initializer(api);
 
-		var info = {};
+		var pkgPath = path.join(plugin.pluginPath, 'package.json');
+		var pkgFile = fs.readFileSync(pkgPath).toString();
+		var pkgMeta = JSON.parse(pkgFile);
+		var info = formatRawPluginData(pkgMeta);
+
 		info.Path = plugin.pluginPath;
-		info.Version = version(info.Path);
-		info.Name = plugin.name();
+
 		info.Accessories = accList;
 		info.Platforms = platList;
 		plugins.push(info);
@@ -67,124 +71,44 @@ var loadPlugins = function () {
 	return cache;
 };
 
-var availablePlugins = {
-	Known: [
-		'homebridge-alarmdotcom',
-		'homebridge-applescript',
-		'homebridge-assurelink',
-		'homebridge-better-http-rgb',
-		'homebridge-cmd',
-		'homebridge-connectedbytcp',
-		'homebridge-controllerlink',
-		'homebridge-domotiga',
-		'homebridge-ds18b20',
-		'homebridge-dummy',
-		'homebridge-ecoplug',
-		'homebridge-envisakit',
-		'homebridge-envisalink',
-		'homebridge-fakebulb',
-		'homebridge-fhem',
-		'homebridge-fibaro-hc2',
-		'homebridge-filesensor',
-		'homebridge-flowerpower',
-		'homebridge-fritzbox',
-		'homebridge-globalcache-gc100',
-		'homebridge-globalcache-itach',
-		'homebridge-harmonyhub',
-		'homebridge-homematic',
-		'homebridge-homewizard',
-		'homebridge-http',
-		'homebridge-http-jeedom',
-		'homebridge-http-rgb',
-		'homebridge-http-temperature-humidity',
-		'homebridge-http-thermostat',
-		'homebridge-httptemperaturehumidity',
-		'homebridge-humidity-file',
-		'homebridge-hyperion',
-		'homebridge-icontrol',
-		'homebridge-ifttt',
-		'homebridge-indigo',
-		'homebridge-inspire-home-automation-boost',
-		'homebridge-irkit',
-		'homebridge-isy-js',
-		'homebridge-kevo',
-		'homebridge-knx',
-		'homebridge-legacy-plugins',
-		'homebridge-liftmaster',
-		'homebridge-lifx',
-		'homebridge-lifx-lan',
-		'homebridge-lightwaverf',
-		'homebridge-lockitron',
-		'homebridge-lomsnvlight',
-		'homebridge-lomwindow',
-		'homebridge-lono',
-		'homebridge-loxone',
-		'homebridge-melcloud',
-		'homebridge-midi',
-		'homebridge-milight',
-		'homebridge-misfit-bolt',
-		'homebridge-mqttswitch',
-		'homebridge-mystrom',
-		'homebridge-nefit-easy',
-		'homebridge-nest',
-		'homebridge-netatmo',
-		'homebridge-ninjablock-alarmstatedevice',
-		'homebridge-ninjablock-humidity',
-		'homebridge-ninjablock-temperature',
-		'homebridge-openhab',
-		'homebridge-openremote',
-		'homebridge-philipshue',
-		'homebridge-pilight',
-		'homebridge-platform-wemo',
-		'homebridge-punt',
-		'homebridge-qmotion',
-		'homebridge-rasppi-gpio-garagedoor',
-		'homebridge-rcswitch',
-		'homebridge-rcswitch-gpiomem',
-		'homebridge-readablehttp',
-		'homebridge-samsungtv',
-		'homebridge-smtpsensor',
-		'homebridge-sonos',
-		'homebridge-sonytv',
-		'homebridge-soundtouch',
-		'homebridge-ssh',
-		'homebridge-symcon',
-		'homebridge-telldus',
-		'homebridge-temperature-file',
-		'homebridge-thermostat',
-		'homebridge-thinkingcleaner',
-		'homebridge-vcontrold',
-		'homebridge-vera',
-		'homebridge-wakeonlan',
-		'homebridge-wemo',
-		'homebridge-wink',
-		'homebridge-wireless-sensor-tag',
-		'homebridge-wol',
-		'homebridge-wunderground',
-		'homebridge-yamaha',
-		'homebridge-zway'
-	]
-};
+var availablePlugins = { };
 var getAvailablePluginsAsync = function(hb, req, log) {
-	var task;
-	if (!availablePlugins || !availablePlugins.Known) {
-		task = reloadAvailablePluginsAsync(log);
-	} else {
-		var secondsFromLastRefresh = Math.floor((new Date() - availablePlugins.LastRefresh) / 1000);
-		if (!availablePlugins.Data || secondsFromLastRefresh > 10) {
-			task = refreshAvailablePluginsAsync(log);
-		}
+	var task = Promise.resolve(true);
+
+	var minutesFromLastReload = Math.floor((new Date() - availablePlugins.LastReload) / 1000 / 60);
+	var needsReload = !availablePlugins || !availablePlugins.Known || minutesFromLastReload > 30;
+	if (needsReload) {
+		task = task.then(function(){
+			return reloadAvailablePluginsAsync(log);
+		});
 	}
-	return task ? task.then(formatAvailablePlugins) : formatAvailablePlugins();
+
+	var secondsFromLastRefresh = Math.floor((new Date() - availablePlugins.LastRefresh) / 1000);
+	var needsRefresh = needsReload || !availablePlugins.Data || secondsFromLastRefresh > 10;
+	if (needsRefresh) {
+		task = task.then(function(){
+			return refreshAvailablePluginsAsync(log);
+		});
+	}
+
+	return task.then(formatAvailablePlugins);
 };
 var formatAvailablePlugins = function() {
 	var data = availablePlugins.Data;
 	var arr = [];
 	for (var k in data) {
-		arr.push(data[k]);
+		arr.push(formatRawPluginData(data[k]));
 	}
 	return {
 		AvailablePlugins: arr
+	};
+};
+var formatRawPluginData = function(data) {
+	return data && {
+		Name: data.name,
+		Description: data.description,
+		Version: data.version,
+		HomePage: data.homepage
 	};
 };
 
@@ -201,23 +125,18 @@ var refreshAvailablePluginsAsync = function(log) {
 			});
 		})
 		.then(function(){
+			availablePlugins.LastRefresh = Date.now();
 			log.debug("Finished refreshAvailablePluginsAsync");
 		});
 };
 
 var reloadAvailablePluginsAsync = function(log){
-	return npmInitAsync(log, function(resolve, reject) {
-		var searchFn = npm.commands.search;
-		var args = ['homebridge-plugin'];
-		var cb = function (err, data) {
-			if (err) return reject(err);
-			availablePlugins.Known = data.keys;
-			availablePlugins.Data = data;
-			availablePlugins.LastRefresh = Date.now();
-			resolve();
-		};
-		searchFn(args,cb);
-	});
+	return npm.search('homebridge-plugin')
+		.then(function(ids){
+			availablePlugins.Known = ids;
+			availablePlugins.LastReload = Date.now();
+			log.debug('Available Plugins Search Results : ' + JSON.stringify(ids));
+		});
 };
 
 var installPluginAsync = function(plugin, options, log) {

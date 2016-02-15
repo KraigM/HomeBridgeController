@@ -1,6 +1,6 @@
 {
   "name": "homebridge-controllerlink",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "NodeJS connection to HomeBridgeController",
   "repository": {
     "type": "git",
@@ -24,9 +24,8 @@
     "express": "^4.13.3",
     "lodash": "^4.2.1",
     "mdns": "^2.2.11",
-    "npm": "^3.5.3",
-    "npmi": "^1.0.1",
-    "promise": "^7.1.1"
+    "npmi": "^2.0.1-alpha",
+    "request-promise": "latest"
   },
   "devDependencies": {
     "homebridge": "^0.2.13"

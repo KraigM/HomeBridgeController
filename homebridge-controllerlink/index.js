@@ -31,7 +31,11 @@ function HomeBridgeControllerLink(log, config) {
 
 HomeBridgeControllerLink.prototype = {
 	accessories: function (callback) {
-		this.server.start();
-		callback([]);
+		this.server.startAsync()
+			.catch(function(err){
+				this.log.error(err);
+			}.bind(this))
+			.return([])
+			.then(callback);
 	}
 };

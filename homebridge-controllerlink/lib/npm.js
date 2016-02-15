@@ -22,9 +22,12 @@
 
 var _ = require('lodash');
 var Promise = require('bluebird');
-var npm = Promise.promisifyAll(require('npm'));
 var npmi = Promise.promisify(require('npmi'));
+const npmPath = 'npmi/node_modules/npm';
+const npmRegistryPath = npmPath + '/node_modules/npm-registry-client';
+var npm = Promise.promisifyAll(require(npmPath));
 var path = require('path');
+var rp = require('request-promise');
 
 var initialized = false;
 
@@ -77,7 +80,7 @@ module.exports = {
 			.then(function () {
 				rawPromisify(npm.commands);
 				// Force non "cached" version of client as "cached" version seems to have issues atm
-				var RegistryClient = require('npm/node_modules/npm-registry-client');
+				var RegistryClient = require(npmRegistryPath);
 				npm.registry = new RegistryClient(npm.registry.config);
 				return initialized = true;
 			});
@@ -115,6 +118,24 @@ module.exports = {
 				var installMessage = didInstall ? ' installed successfully in ' : ' already installed in ';
 				log(opts.name + '@' + opts.version + installMessage + path.resolve(opts.path));
 				return didInstall;
+			});
+	},
+
+	search: function(keyword) {
+		// Based on : http://stackoverflow.com/a/13657540/3578535
+		var req = rp({
+			uri: 'https://registry.npmjs.org/-/_view/byKeyword',
+			qs: {
+				startkey: JSON.stringify([keyword]),
+				endkey: JSON.stringify([keyword,{}]),
+				group_level: 3
+			},
+			json: true
+		});
+		return req
+			.then(function (data) {
+				return data.rows
+					.map(function(result){ return result.key[1]; });
 			});
 	},
 

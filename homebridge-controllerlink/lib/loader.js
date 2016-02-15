@@ -3,6 +3,7 @@
  */
 
 var Path = require('path');
+var fs = require('fs');
 
 function findModuleParent(mod, pred) {
 	while (mod) {
@@ -25,7 +26,10 @@ function findLibDirectory() {
 
 var lib = findLibDirectory();
 
+var pkgDir = Path.resolve(Path.join(lib, '..'));
+
 module.exports = {
+	ModuleDirectory: pkgDir,
 	Plugin: require(Path.join(lib, 'plugin.js')).Plugin,
 	API: require(Path.join(lib, 'api.js')).API,
 	User: require(Path.join(lib, 'user.js')).User
