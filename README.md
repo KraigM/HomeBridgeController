@@ -1,4 +1,4 @@
-# HomeBridgeController
+# HomeBridgeController [![npm version](https://badge.fury.io/js/homebridge-controllerlink.svg)](https://badge.fury.io/js/homebridge-controllerlink) 
 Provides a simplified UI for controlling your [HomeBridge](https://github.com/nfarina/homebridge).  This is still a work in progress but currently it is able to:
 
 - Access you HomeBridge instance from anywhere on you local network (same machine, another machine, RPi, doesn't matter)
