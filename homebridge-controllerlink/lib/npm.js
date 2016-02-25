@@ -23,8 +23,8 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var npmi = Promise.promisify(require('npmi'));
-const npmPath = 'npmi/node_modules/npm';
-const npmRegistryPath = npmPath + '/node_modules/npm-registry-client';
+const npmPath = 'npm';
+const npmRegistryPath = 'npm-registry-client';
 var npm = Promise.promisifyAll(require(npmPath));
 var path = require('path');
 var rp = require('request-promise');
