@@ -194,7 +194,7 @@ var determineInstallDirAsync = function(plugin, options, log) {
 			} else if (!modulesOptional) {
 				return false;
 			}
-			resolve(dir);
+			resolve(path.resolve(dir));
 			return true;
 		};
 
