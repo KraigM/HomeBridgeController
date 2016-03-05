@@ -104,7 +104,8 @@ Server.prototype.startAsync = function() {
 				txtRecord: {
 					Version: info.Version,
 					OS: info.OS,
-					Name: info.Name
+					Name: info.Name,
+					Id: info.Id
 				}
 			}).start();
 			self.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);

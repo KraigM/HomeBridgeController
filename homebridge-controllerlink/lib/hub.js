@@ -40,7 +40,10 @@ var getHubInfoAsync = function(hb, log) {
 		Promise.resolve(new Config(hb))
 	])
 		.then(function(results){
+			var id = results[2].bridge.username;
+			id = id && id.toUpperCase().replace(/:/g, '');
 			return {
+				Id: id,
 				Name: results[2].bridge.name,
 				OS: os.current.Type,
 				Version: results[0].version,
