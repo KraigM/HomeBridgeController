@@ -33,11 +33,22 @@ var getLatestHomeBridgeVersionAsync = function(log) {
 		});
 };
 
+var getLinkVersionAsync = function(log) {
+	var pkgDir = path.dirname(module.filename);
+	var pkgPath = path.join(pkgDir, '..', 'package.json');
+	return fsAsync.readFileAsync(pkgPath)
+		.then(function(file){
+			var pkgFile = file.toString();
+			return JSON.parse(pkgFile);
+		});
+};
+
 var getHubInfoAsync = function(hb, log) {
 	return Promise.all([
 		getHubPackageInfoAsync(log),
 		getLatestHomeBridgeVersionAsync(log),
-		Promise.resolve(new Config(hb))
+		Promise.resolve(new Config(hb)),
+		getLinkVersionAsync()
 	])
 		.then(function(results){
 			var id = results[2].bridge.username;
@@ -47,6 +58,7 @@ var getHubInfoAsync = function(hb, log) {
 				Name: results[2].bridge.name,
 				OS: os.current.Type,
 				Version: results[0].version,
+				LinkVersion: results[3].version,
 				LatestVersion: results[1]
 			};
 		});
