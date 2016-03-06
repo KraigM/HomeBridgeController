@@ -1,3 +1,16 @@
+# Release 0.4.0
+---------------
+### Additions
++ [[#4]](https://github.com/KraigM/HomeBridgeController/issues/4)	**Versioning of Configs**: Now configs are completely version controlled using OSX's built in versioning. This means you are able to quickly revert to previous versions of your config, view how your config has changed over time, and even copy portions of a previous config to your current config. This was a massive change, especially since the real file exists externally but is versioned locally. Almost all functionality has been integrated, however it will be refined going forward (please submit issues for any related problems or feature requests for further integration)
+
++ [[#5]](https://github.com/KraigM/HomeBridgeController/issues/5)	Some of the UI and terminology have been updated to be more clear and to better integrate with the versioning changes
+
++ [[#9]](https://github.com/KraigM/HomeBridgeController/issues/9)	You can now delete platforms and accessories from you config
+
++ [[#1]](https://github.com/KraigM/HomeBridgeController/issues/1)	Added the ability to search new for plugins by name on the install plugin screen
+
+
+
 # Release 0.3.0
 ---------------
 ### Additions
