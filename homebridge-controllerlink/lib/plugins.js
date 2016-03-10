@@ -3,6 +3,8 @@ var Plugin = Loader.Plugin;
 var API = Loader.API;
 var version = require('./version.js');
 var npm = require('./npm');
+var installq = require('./installq');
+var InstallStatusType = installq.StatusType;
 var Promise = require('bluebird');
 var _ = require('lodash');
 var path = require('path');
@@ -155,13 +157,17 @@ var installPluginAsync = function(plugin, options, log) {
 		.then(function(pkgDir){
 			log.debug("Installing " + plugin + " plugin at " + pkgDir);
 			options.path = pkgDir;
-			return npm.install(plugin, options, log);
-		})
-		.then(function(didInstall) {
-			if (didInstall) cache = null;
-			//if (!availablePlugins.Data) availablePlugins.Data = {};
-			//availablePlugins.Data[plugin] = data;
-			log.debug("Finished installPluginAsync");
+			var stat = installq.enqueue(plugin, options, log);
+			var task = stat.task;
+			if (task) {
+				task.finally(function(){
+					if (stat.didInstall) cache = null;
+					//if (!availablePlugins.Data) availablePlugins.Data = {};
+					//availablePlugins.Data[plugin] = data;
+					log.debug("Finished installPluginAsync");
+				})
+			}
+			return stat;
 		});
 };
 
@@ -238,21 +244,24 @@ module.exports.api.installAsync = function (homebridge, req, log) {
 	return installPluginAsync(plugin, {
 		version: req.body.Version
 	}, log)
-		.then(function (modules) {
-			var rtn = {
-				Type: 1,
-				InstalledModules: modules
-			};
-			var installedPlugins = loadPlugins().Plugins;
-			if (installedPlugins) {
-				for (var i = 0; i < installedPlugins.length; i++) {
-					var p = installedPlugins[i];
-					if (p.Name == plugin) {
-						rtn.Plugin = p;
-						break;
-					}
-				}
+		.then(function (stat) {
+			if (!stat || !stat.status) {
+				return {
+					Type: 2,
+					Message: "Failed to start installation",
+					FullError: "No status object returned from installPluginAsync"
+				};
 			}
-			return rtn;
+			if (stat.status == InstallStatusType.Error) {
+				return {
+					Type: 2,
+					Message: "Installation failed",
+					FullError: stat.error && (stat.error.stack || stat.error.message || stat.error)
+				};
+			}
+			return {
+				Type: 1,
+				InstallStatusKey: stat.status != InstallStatusType.Success ? plugin : null
+			};
 		});
 };

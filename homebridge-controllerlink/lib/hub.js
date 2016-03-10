@@ -5,6 +5,8 @@
 var Loader = require('./loader.js');
 var Config = require('./config');
 var npm = require('./npm.js');
+var installq = require('./installq');
+var InstallStatusType = installq.StatusType;
 var fs = require('fs');
 var path = require('path');
 var Promise = require('bluebird');
@@ -89,7 +91,7 @@ var installHubUpdateAsync = function(options, log) {
 		.then(function(){
 			log.debug("Installing " + id + " plugin at " + pkgDir);
 			options.path = pkgRoot;
-			return npm.install(id, options, log);
+			return installq.enqueue(id, options, log);
 		});
 };
 
@@ -110,19 +112,27 @@ module.exports.api.get = function(hb, req, log) {
 		});
 };
 module.exports.api.installAsync = function (hb, req, log) {
-	var rtn;
 	return installHubUpdateAsync({
 		version: req && req.body && req.body.Version
 	}, log)
-		.then(function (modules) {
-			rtn = {
+		.then(function (stat) {
+			if (!stat || !stat.status) {
+				return {
+					Type: 2,
+					Message: "Failed to start installation",
+					FullError: "No status object returned from installHubUpdateAsync"
+				};
+			}
+			if (stat.status == InstallStatusType.Error) {
+				return {
+					Type: 2,
+					Message: "Installation failed",
+					FullError: stat.error && (stat.error.stack || stat.error.message || stat.error)
+				};
+			}
+			return {
 				Type: 1,
-				InstalledModules: modules
+				InstallStatusKey: stat.status != InstallStatusType.Success ? hubModuleId : null
 			};
-			return getHubInfoAsync(hb, log);
-		})
-		.then(function(info){
-			rtn.Info = info;
-			return rtn;
 		});
 };
