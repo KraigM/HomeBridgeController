@@ -11,6 +11,7 @@ var Auth = require('./auth.js');
 var bodyParser = require('body-parser');
 var Promise = require('bluebird');
 var Hub = require('./hub');
+var InstallQueue = require('./installq');
 
 //var logger = new Logger();
 
@@ -71,6 +72,7 @@ function Server(homebridge, port, accessKey, log) {
 	app.post('/config', jsonRtn(Config.api.put));
 	app.get('/hub', jsonRtn(Hub.api.get));
 	app.post('/hub', jsonRtn(Hub.api.installAsync));
+	app.get('/install/status', jsonRtn(InstallQueue.api.getStatus));
 	app.get('/ping', jsonRtn(function(){ return {}; }));
 
 	this.app = app;

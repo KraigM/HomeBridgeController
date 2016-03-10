@@ -49,3 +49,33 @@ module.exports = {
     status: status,
     StatusType: StatusType
 };
+
+module.exports.api = { };
+module.exports.api.getStatus = function (hb, req, log) {
+    var statusId = req && req.query && req.query.InstallStatusKey;
+    if (!statusId) {
+        return {
+            Type: 2,
+            Message: "You must specify a key that identifies the installation"
+        };
+    }
+    var stat = status(statusId);
+    if (!stat || !stat.status) {
+        return {
+            Type: 2,
+            Message: "Failed to find installation",
+            FullError: "No status object returned from installq.status"
+        };
+    }
+    if (stat.status == StatusType.Error) {
+        return {
+            Type: 2,
+            Message: "Installation failed",
+            FullError: stat.error && (stat.error.stack || stat.error.message || stat.error)
+        };
+    }
+    return {
+        Type: 1,
+        StatusType: stat.status
+    };
+};
