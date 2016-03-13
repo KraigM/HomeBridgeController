@@ -9,40 +9,41 @@ var fs = require('fs-extra');
 var util = require('util');
 var path = require('path');
 
+function Logger() {
+}
+
 var cachedLogDirectory = null;
-var getLogDirectory = function() {
+Logger.prototype.getLogDirectory = function() {
 	return cachedLogDirectory || (cachedLogDirectory = path.resolve(path.join(Loader.ControllerStorageDirectory(), 'logs')));
 };
 
-var ensureLogDirectory = function() {
-	var logsDir = getLogDirectory();
+Logger.prototype.ensureLogDirectory = function() {
+	var logsDir = this.getLogDirectory();
 	if (!fs.existsSync(logsDir)) fs.mkdirsSync(logsDir);
 };
 
-var getLogFilePath = function() {
-	var logsDir = getLogDirectory();
+Logger.prototype.getLogFilePath = function() {
+	var logsDir = this.getLogDirectory();
 	return path.join(logsDir, strftime('%F.hbclog'));
 };
 
-var curStream = null;
-var curStreamPath = null;
-var getLogFileStream = function() {
-	var filePath = getLogFilePath();
-	if (curStreamPath && curStream && curStreamPath == filePath) {
-		return curStream;
+Logger.prototype.getLogFileStream = function() {
+	var filePath = this.getLogFilePath();
+	if (this.curStreamPath && this.curStream && this.curStreamPath == filePath) {
+		return this.curStream;
 	}
 
 	var isContinue = false;
-	if (curStream) {
-		writeClose(curStream, true);
-		curStream = null;
+	if (this.curStream) {
+		writeClose(this.curStream, true);
+		this.curStream = null;
 		isContinue = true;
 	}
 
-	curStream = fs.createWriteStream(filePath, { 'flags': 'a' });
-	curStreamPath = filePath;
-	writeOpen(curStream, isContinue);
-	return curStream;
+	this.curStream = fs.createWriteStream(filePath, { 'flags': 'a' });
+	this.curStreamPath = filePath;
+	writeOpen(this.curStream, isContinue);
+	return this.curStream;
 };
 
 var writeOpen = function(stream, isContinue) {
@@ -63,10 +64,10 @@ var getLineString = function(prefix, log) {
 	return chalk.stripColor('[' + strftime('%T') + '][' + prefix + '] ' + log + '\n');
 };
 
-var internalRedirect = function () {
+Logger.prototype.internalRedirect = function () {
 	if (console.__ts__) return;
 
-	ensureLogDirectory();
+	this.ensureLogDirectory();
 
 	var slice = Array.prototype.slice;
 
@@ -89,10 +90,12 @@ var internalRedirect = function () {
 		}
 	};
 
+	var self = this;
+
 	Object.keys(wrapMap).forEach(function (k) {
 		var fn = console[k];
 		console[k] = function () {
-			var log_file = getLogFileStream();
+			var log_file = self.getLogFileStream();
 			var args = slice.call(arguments);
 			var cfg = wrapMap[k];
 			//var type = chalk[cfg.color](cfg.print);
@@ -106,4 +109,10 @@ var internalRedirect = function () {
 	console.__ts__ = true;
 };
 
-module.exports = internalRedirect;
+
+module.exports = function(){
+	var logger = new Logger();
+	logger.internalRedirect();
+	return logger;
+};
+module.exports.Logger = Logger;
