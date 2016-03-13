@@ -12,6 +12,7 @@ var bodyParser = require('body-parser');
 var Promise = require('bluebird');
 var Hub = require('./hub');
 var InstallQueue = require('./installq');
+var SocketIO = require('socket.io');
 var http = require('http');
 
 var logger = new Logger();
@@ -87,7 +88,19 @@ Server.prototype.start = function () {
 Server.prototype.startAsync = function() {
 	var self = this;
 	return Promise.all([
-		Promise.fromCallback(this.server.listen.bind(this.server, this.port)),
+		Promise.fromCallback(this.server.listen.bind(this.server, this.port))
+			.then(function(){
+				var numUsers = 0;
+				var io = SocketIO(self.server);
+				io.on('connection', function (socket) {
+					//TODO: Auth
+
+					// when the user disconnects.. perform this
+					socket.on('disconnect', function () {
+						--numUsers;
+					});
+				});
+			}),
 		Hub.getHubInfoAsync(this.homebridge, this.log)
 	])
 		.then(function(results) {

@@ -30,6 +30,7 @@
     "npm-registry-client": "^7",
     "npmi": "git+https://github.com/maxleiko/npmi.git#fe209335ed0d139b9070a508eec3af2f29f999f1",
     "request-promise": "latest",
+    "socket.io": "^1.4.5",
     "strftime": "^0.9.2"
   },
   "devDependencies": {
