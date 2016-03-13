@@ -92,9 +92,17 @@ Server.prototype.startAsync = function() {
 			.then(function(){
 				var numUsers = 0;
 				var io = SocketIO(self.server);
+				const liveRoom = 'live';
+
+				var broadcastLog = function(line) {
+					io.to(liveRoom).emit('log', line);
+				};
+				logger.on('log', broadcastLog);
+
 				io.on('connection', function (socket) {
 					//TODO: Auth
 
+					socket.join(liveRoom);
 					// when the user disconnects.. perform this
 					socket.on('disconnect', function () {
 						--numUsers;

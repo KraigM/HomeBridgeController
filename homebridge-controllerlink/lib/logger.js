@@ -8,9 +8,12 @@ var Loader = require('./loader');
 var fs = require('fs-extra');
 var util = require('util');
 var path = require('path');
+const EventEmitter = require('events');
 
 function Logger() {
+	EventEmitter.call(this);
 }
+util.inherits(Logger, EventEmitter);
 
 var cachedLogDirectory = null;
 Logger.prototype.getLogDirectory = function() {
@@ -102,6 +105,7 @@ Logger.prototype.internalRedirect = function () {
 
 			var logLine = getLineString(cfg.print, util.format.apply(this, arguments));
 			log_file.write(logLine);
+			self.emit('log', logLine);
 
 			fn.apply(this, args);
 		};
