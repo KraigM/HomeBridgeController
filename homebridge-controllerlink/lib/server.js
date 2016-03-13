@@ -12,6 +12,7 @@ var bodyParser = require('body-parser');
 var Promise = require('bluebird');
 var Hub = require('./hub');
 var InstallQueue = require('./installq');
+var http = require('http');
 
 var logger = new Logger();
 
@@ -26,6 +27,7 @@ function Server(homebridge, port, accessKey, log) {
 	this.auth = auth;
 
 	var app = express();
+	var server = http.createServer(app);
 
 	app.use(bodyParser.json());
 
@@ -76,15 +78,8 @@ function Server(homebridge, port, accessKey, log) {
 	app.get('/ping', jsonRtn(function(){ return {}; }));
 
 	this.app = app;
+	this.server = server;
 }
-
-var listenAsync = function(app, port) {
-	return new Promise(function(resolve, reject){
-		var server = app.listen(port, function() {
-			resolve(server);
-		});
-	});
-};
 
 Server.prototype.start = function () {
 	this.startAsync();
@@ -92,11 +87,10 @@ Server.prototype.start = function () {
 Server.prototype.startAsync = function() {
 	var self = this;
 	return Promise.all([
-		listenAsync(this.app, this.port),
+		Promise.fromCallback(this.server.listen.bind(this.server, this.port)),
 		Hub.getHubInfoAsync(this.homebridge, this.log)
 	])
 		.then(function(results) {
-			self.server = results[0];
 			var port = self.server.address().port;
 			self.log("Started HomeBridgeControllerLink on port " + port);
 
