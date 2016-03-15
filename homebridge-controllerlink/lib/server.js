@@ -94,17 +94,27 @@ Server.prototype.startAsync = function() {
 				var io = SocketIO(self.server);
 				const liveRoom = 'live';
 
+				io.use(function(socket, next) {
+					var token = socket && socket.handshake && socket.handshake.query && socket.handshake.query.token;
+					if (!self.auth.verifyToken(token)) {
+						next(new Error('not authorized'));
+					} else {
+						next();
+					}
+				});
+
 				var broadcastLog = function(line) {
 					io.to(liveRoom).emit('log', line);
 				};
 				logger.on('log', broadcastLog);
 
 				io.on('connection', function (socket) {
-					//TODO: Auth
-
+					self.debug("User connected to logger");
 					socket.join(liveRoom);
+
 					// when the user disconnects.. perform this
 					socket.on('disconnect', function () {
+						self.debug("User disconnected from logger");
 						--numUsers;
 					});
 				});
