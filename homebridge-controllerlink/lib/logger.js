@@ -5,10 +5,13 @@
 var chalk = require('chalk');
 var strftime = require('strftime');
 var Loader = require('./loader');
+var Hub = require('./hub');
 var fs = require('fs-extra');
 var util = require('util');
 var path = require('path');
 const EventEmitter = require('events');
+
+const needsLogTime = !Hub.ensureHubVersion('0.3.1');
 
 function Logger() {
 	EventEmitter.call(this);
@@ -64,7 +67,11 @@ var getBreakString = function(prefix, message, isContinue) {
 };
 
 var getLineString = function(prefix, log) {
-	return chalk.stripColor('[' + strftime('%T') + '][' + prefix + '] ' + log + '\n');
+	var line = '[' + prefix + ']';
+	if (needsLogTime || !log || log[0] != '[') {
+		line += '[' + strftime('%T') + '] ';
+	}
+	return chalk.stripColor(line + log + '\n');
 };
 
 Logger.prototype.internalRedirect = function () {
