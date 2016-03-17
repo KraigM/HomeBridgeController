@@ -82,22 +82,10 @@ Logger.prototype.internalRedirect = function () {
 	var slice = Array.prototype.slice;
 
 	var wrapMap = {
-		log: {
-			color:'green',
-			print:'LOG'
-		},
-		info: {
-			color: 'cyan',
-			print:'INF'
-		},
-		warn: {
-			color: 'yellow',
-			print:'WAR'
-		},
-		error: {
-			color: 'red',
-			print:'ERR'
-		}
+		log: 'LOG',
+		info: 'INF',
+		warn: 'WAR',
+		error: 'ERR'
 	};
 
 	var self = this;
@@ -108,9 +96,8 @@ Logger.prototype.internalRedirect = function () {
 			var log_file = self.getLogFileStream();
 			var args = slice.call(arguments);
 			var cfg = wrapMap[k];
-			//var type = chalk[cfg.color](cfg.print);
 
-			var logLine = getLineString(cfg.print, util.format.apply(this, arguments));
+			var logLine = getLineString(cfg, util.format.apply(this, arguments));
 			log_file.write(logLine);
 			self.emit('log', logLine);
 
