@@ -9,6 +9,7 @@ var Hub = require('./hub');
 var fs = require('fs-extra');
 var util = require('util');
 var path = require('path');
+var Promise = require('bluebird');
 const EventEmitter = require('events');
 
 const needsLogTime = !Hub.ensureHubVersion('0.3.1');
@@ -107,6 +108,19 @@ Logger.prototype.internalRedirect = function () {
 	console.__ts__ = true;
 };
 
+Logger.prototype.list = function() {
+	var logDir = this.getLogDirectory();
+	return Promise.fromCallback(fs.readdir.bind(null, logDir))
+		.filter(function(val) {
+			return val && path.extname(val) == '.hbclog';
+		})
+		.then(function(ls) {
+			return {
+				Type: 1,
+				LogList: ls
+			};
+		});
+};
 
 module.exports = function(){
 	var logger = new Logger();

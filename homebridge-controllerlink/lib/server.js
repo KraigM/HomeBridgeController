@@ -92,6 +92,7 @@ function Server(homebridge, port, accessKey, log) {
 		staticLogFileServer(req,res,next);
 	});
 	app.use(logRouter);
+	app.get('/log', jsonRtn(logger.list.bind(logger)));
 
 	this.app = app;
 	this.server = server;
