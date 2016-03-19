@@ -122,9 +122,12 @@ Logger.prototype.list = function() {
 		});
 };
 
+var staticInst;
 module.exports = function(){
+	if (staticInst) return staticInst;
 	var logger = new Logger();
 	logger.internalRedirect();
+	staticInst = logger;
 	return logger;
 };
 module.exports.Logger = Logger;
