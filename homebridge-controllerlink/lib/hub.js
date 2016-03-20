@@ -5,23 +5,44 @@
 var Loader = require('./loader.js');
 var Config = require('./config');
 var npm = require('./npm.js');
+var installq = require('./installq');
+var InstallStatusType = installq.StatusType;
 var fs = require('fs');
 var path = require('path');
 var Promise = require('bluebird');
 var os = require('./os');
+var semver = require('semver');
 var fsAsync = {
 	readFileAsync: Promise.promisify(fs.readFile)
 };
 var hubModuleId = "homebridge";
 
-var getHubPackageInfoAsync = function(log) {
+var getHubPackageFilePath = function() {
 	var pkgDir = Loader.ModuleDirectory;
 	var pkgPath = path.join(pkgDir, 'package.json');
+	return pkgPath;
+};
+
+var getHubPackageInfoAsync = function(log) {
+	var pkgPath = getHubPackageFilePath();
 	return fsAsync.readFileAsync(pkgPath)
-		.then(function(file){
-			var pkgFile = file.toString();
-			return JSON.parse(pkgFile);
-		});
+		.then(parseHubPackageInfo);
+};
+
+var getHubPackageInfoSync = function() {
+	var pkgPath = getHubPackageFilePath();
+	var file = fs.readFileSync(pkgPath);
+	return parseHubPackageInfo(file);
+};
+
+var parseHubPackageInfo = function(file) {
+	var pkgFile = file.toString();
+	return JSON.parse(pkgFile);
+};
+
+var initHubData = getHubPackageInfoSync();
+var ensureHubVersion = function(query) {
+	return semver.satisfies(initHubData.version, query);
 };
 
 var getLatestHomeBridgeVersionAsync = function(log) {
@@ -89,13 +110,14 @@ var installHubUpdateAsync = function(options, log) {
 		.then(function(){
 			log.debug("Installing " + id + " plugin at " + pkgDir);
 			options.path = pkgRoot;
-			return npm.install(id, options, log);
+			return installq.enqueue(id, options, log);
 		});
 };
 
 module.exports = {
 	installHubUpdateAsync: installHubUpdateAsync,
 	getHubInfoAsync: getHubInfoAsync,
+	ensureHubVersion: ensureHubVersion,
 	getLatestHomeBridgeVersionAsync: getLatestHomeBridgeVersionAsync
 };
 
@@ -110,19 +132,27 @@ module.exports.api.get = function(hb, req, log) {
 		});
 };
 module.exports.api.installAsync = function (hb, req, log) {
-	var rtn;
 	return installHubUpdateAsync({
 		version: req && req.body && req.body.Version
 	}, log)
-		.then(function (modules) {
-			rtn = {
+		.then(function (stat) {
+			if (!stat || !stat.status) {
+				return {
+					Type: 2,
+					Message: "Failed to start installation",
+					FullError: "No status object returned from installHubUpdateAsync"
+				};
+			}
+			if (stat.status == InstallStatusType.Error) {
+				return {
+					Type: 2,
+					Message: "Installation failed",
+					FullError: stat.error && (stat.error.stack || stat.error.message || stat.error)
+				};
+			}
+			return {
 				Type: 1,
-				InstalledModules: modules
+				InstallStatusKey: stat.status != InstallStatusType.Success ? hubModuleId : null
 			};
-			return getHubInfoAsync(hb, log);
-		})
-		.then(function(info){
-			rtn.Info = info;
-			return rtn;
 		});
 };
