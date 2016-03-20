@@ -16,8 +16,25 @@ const needsLogTime = !Hub.ensureHubVersion('0.3.1');
 
 function Logger() {
 	EventEmitter.call(this);
+	this.enabled = null;
+	this._queue = [];
 }
 util.inherits(Logger, EventEmitter);
+
+Logger.prototype.setEnabled = function(enabled) {
+	enabled = (enabled) ? true : false;
+	if (this.enabled != null && enabled == this.enabled) {
+		return;
+	}
+
+	this.enabled = enabled;
+
+	if (enabled) {
+		this.runQueue();
+	} else {
+		this._queue = null;
+	}
+};
 
 var cachedLogDirectory = null;
 Logger.prototype.getLogDirectory = function() {
@@ -80,8 +97,6 @@ Logger.prototype.internalRedirect = function () {
 
 	this.ensureLogDirectory();
 
-	var slice = Array.prototype.slice;
-
 	var wrapMap = {
 		log: 'LOG',
 		info: 'INF',
@@ -94,18 +109,47 @@ Logger.prototype.internalRedirect = function () {
 	Object.keys(wrapMap).forEach(function (k) {
 		var fn = console[k];
 		console[k] = function () {
-			var log_file = self.getLogFileStream();
-			var args = slice.call(arguments);
-			var cfg = wrapMap[k];
-
-			var logLine = getLineString(cfg, util.format.apply(this, arguments));
-			log_file.write(logLine);
-			self.emit('log', logLine);
-
-			fn.apply(this, args);
+			self.queueLog(wrapMap[k], arguments);
+			fn.apply(this, arguments);
 		};
 	});
 	console.__ts__ = true;
+};
+
+var copyArgs = Array.prototype.slice;
+Logger.prototype.queueLog = function(cfg, args) {
+	if (this.enabled == false) return;
+
+	args = copyArgs.call(args);
+	var preformattedLog = getLineString(cfg, util.format.apply(this, args));
+
+	if (this.enabled == false) return;
+
+	var lines = this._queue;
+	if (lines) lines.push(preformattedLog);
+	else this.writeLog(preformattedLog);
+};
+
+Logger.prototype.runQueue = function() {
+	if (!this._queue) return;
+
+	var self = this;
+	var lines = this._queue;
+	var sendAll = function() {
+		var ln;
+		while (ln = lines.shift()) {
+			self.writeLog(ln);
+		}
+	};
+	sendAll();
+	this._queue = null;
+	sendAll();
+};
+
+Logger.prototype.writeLog = function(preformattedLog) {
+	var log_file = this.getLogFileStream();
+	log_file.write(preformattedLog);
+	this.emit('log', preformattedLog);
 };
 
 Logger.prototype.list = function() {

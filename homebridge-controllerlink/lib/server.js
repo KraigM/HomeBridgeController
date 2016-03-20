@@ -20,7 +20,10 @@ var logger = new Logger();
 
 module.exports = Server;
 
-function Server(homebridge, port, accessKey, log) {
+function Server(homebridge, port, accessKey, log, disableLogger) {
+
+	logger.setEnabled(!disableLogger);
+
 	this.homebridge = homebridge;
 	this.port = port || 51828;
 	this.log = log;
