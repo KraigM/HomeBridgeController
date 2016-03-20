@@ -1,3 +1,24 @@
+# Release 0.5.0
+---------------
+### Additions 
+
++ [[#11]](https://github.com/KraigM/HomeBridgeController/issues/11) **Streams logs from HomeBridge** A new Logs view has been added to the app. Currently, when you open the app, it will load all the logs from that day and display them. From there, it will live stream the logs to the right to the app (even over the _local_ network).  This _will not_ effect you console output, it just also sends them to a live stream (authenticated) as well as to a log file for that day.  Log files are stored in your homebridge user directory (same place as your config) in a _controller/logs_ directory. If for some reason you do not wish to use the logger functionality, you can disable it by adding _"disableLogger": true_ to your config.
+
++ [[#28]](https://github.com/KraigM/HomeBridgeController/issues/28) Now supports **OAuth authentication** (or other similar authentication styles) from plugins.  Right now, only **[Nest](https://github.com/KraigM/homebridge-nest)** is supported, but any others can now be added (request new ones via GitHub issues).
+
++ [[#24]](https://github.com/KraigM/HomeBridgeController/issues/24) Better handles long running installs. Instead of throwing up a strange timeout error, it will just continue to wait until it finishes. Better integration to come, but this is good in the meantime.
+
++ [[#7]](https://github.com/KraigM/HomeBridgeController/issues/7) You can now disable platforms and accessories without losing their configs.  The will be completely removed from HomeKit and will not start at all on HomeBridge.  (Note that you will lose any HomeKit settings for that platform/accessory)
+
++ [[#30]](https://github.com/KraigM/HomeBridgeController/issues/30) Added the Name of the platform/accessory to the sidebar if there are multiple from the same plugin.
+
+
+
+
+## Release 0.4.1
+- [[#25]](https://github.com/KraigM/HomeBridgeController/issues/25) Fixed minor issue with link version check
+
+
 # Release 0.4.0
 ---------------
 ### Additions
