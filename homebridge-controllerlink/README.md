@@ -18,8 +18,10 @@ Configuration sample:
  ```
 "platforms": [
 		{
-			"platform": "HomeBridgeControllerLink"
+			"platform": "HomeBridgeControllerLink",
+			"disableLogger": false
 		}
 	],
 
 ```
+"disableLogger" - Optional config that can disable the automatic file logging as well as the streaming of the logs

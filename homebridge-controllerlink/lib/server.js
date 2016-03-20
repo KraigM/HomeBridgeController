@@ -7,17 +7,23 @@ var mdns = require('mdns');
 var plugins = require('./plugins');
 var Config = require('./config');
 var Auth = require('./auth.js');
-//var Logger = require('./logger');
+var Logger = require('./logger');
 var bodyParser = require('body-parser');
 var Promise = require('bluebird');
 var Hub = require('./hub');
 var InstallQueue = require('./installq');
+var SocketIO = require('socket.io');
+var http = require('http');
+var Path = require('path');
 
-//var logger = new Logger();
+var logger = new Logger();
 
 module.exports = Server;
 
-function Server(homebridge, port, accessKey, log) {
+function Server(homebridge, port, accessKey, log, disableLogger) {
+
+	logger.setEnabled(!disableLogger);
+
 	this.homebridge = homebridge;
 	this.port = port || 51828;
 	this.log = log;
@@ -26,6 +32,7 @@ function Server(homebridge, port, accessKey, log) {
 	this.auth = auth;
 
 	var app = express();
+	var server = http.createServer(app);
 
 	app.use(bodyParser.json());
 
@@ -75,16 +82,24 @@ function Server(homebridge, port, accessKey, log) {
 	app.get('/install/status', jsonRtn(InstallQueue.api.getStatus));
 	app.get('/ping', jsonRtn(function(){ return {}; }));
 
-	this.app = app;
-}
-
-var listenAsync = function(app, port) {
-	return new Promise(function(resolve, reject){
-		var server = app.listen(port, function() {
-			resolve(server);
-		});
+	var logRouter = express.Router();
+	var staticLogFileServer = express.static(logger.getLogDirectory(), {
+		extensions: ['hbclog', 'log']
 	});
-};
+	logRouter.use('/log/live', function(req,res,next){
+		var liveFilename = Path.basename(logger.getLogFilePath());
+		req.url = '/log/' + liveFilename;
+		logRouter(req,res,next);
+	});
+	logRouter.use("/log", function(req,res,next){
+		staticLogFileServer(req,res,next);
+	});
+	app.use(logRouter);
+	app.get('/log', jsonRtn(logger.list.bind(logger)));
+
+	this.app = app;
+	this.server = server;
+}
 
 Server.prototype.start = function () {
 	this.startAsync();
@@ -92,11 +107,40 @@ Server.prototype.start = function () {
 Server.prototype.startAsync = function() {
 	var self = this;
 	return Promise.all([
-		listenAsync(this.app, this.port),
+		Promise.fromCallback(this.server.listen.bind(this.server, this.port))
+			.then(function(){
+				var numUsers = 0;
+				var io = SocketIO(self.server);
+				const liveRoom = 'live';
+
+				io.use(function(socket, next) {
+					var token = socket && socket.handshake && socket.handshake.query && socket.handshake.query.token;
+					if (!self.auth.verifyToken(token)) {
+						next(new Error('not authorized'));
+					} else {
+						next();
+					}
+				});
+
+				var broadcastLog = function(line) {
+					io.to(liveRoom).emit('log', line);
+				};
+				logger.on('log', broadcastLog);
+
+				io.on('connection', function (socket) {
+					self.debug("User connected to logger");
+					socket.join(liveRoom);
+
+					// when the user disconnects.. perform this
+					socket.on('disconnect', function () {
+						self.debug("User disconnected from logger");
+						--numUsers;
+					});
+				});
+			}),
 		Hub.getHubInfoAsync(this.homebridge, this.log)
 	])
 		.then(function(results) {
-			self.server = results[0];
 			var port = self.server.address().port;
 			self.log("Started HomeBridgeControllerLink on port " + port);
 

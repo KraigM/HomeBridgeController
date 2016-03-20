@@ -34,3 +34,7 @@ module.exports = {
 	API: require(Path.join(lib, 'api.js')).API,
 	User: require(Path.join(lib, 'user.js')).User
 };
+
+module.exports.ControllerStorageDirectory = function() {
+	return Path.resolve(Path.join(module.exports.User.storagePath(), 'controller'));
+};
