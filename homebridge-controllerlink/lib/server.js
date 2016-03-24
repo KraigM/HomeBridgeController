@@ -15,6 +15,7 @@ var InstallQueue = require('./installq');
 var SocketIO = require('socket.io');
 var http = require('http');
 var Path = require('path');
+var Status = require('./status');
 
 var logger = new Logger();
 
@@ -81,6 +82,7 @@ function Server(homebridge, port, accessKey, log, disableLogger) {
 	app.post('/hub', jsonRtn(Hub.api.installAsync));
 	app.get('/install/status', jsonRtn(InstallQueue.api.getStatus));
 	app.get('/ping', jsonRtn(function(){ return {}; }));
+	app.post('/hub/restart', jsonRtn(Status.api.restart));
 
 	var logRouter = express.Router();
 	var staticLogFileServer = express.static(logger.getLogDirectory(), {
