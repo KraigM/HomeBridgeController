@@ -152,6 +152,7 @@ Server.prototype.startAsync = function() {
 			var info = results[1] || {};
 			const key = 'hbctrllink';
 			mdns.createAdvertisement(mdns.tcp(key), port, {
+				name: info.Name,
 				txtRecord: {
 					Version: info.Version,
 					LinkVersion: info.LinkVersion,
