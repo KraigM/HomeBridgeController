@@ -4,6 +4,12 @@
 
 const ChildProcess = require('child_process');
 const Promise = require('bluebird');
+const EventEmitter = require('events');
+
+var emitter = new EventEmitter();
+var events =  {
+	Shutdown: "shutdown"
+};
 
 var restartHomeBridge = function(log) {
 	log = log || console.log;
@@ -13,6 +19,13 @@ var restartHomeBridge = function(log) {
 	log('restarting...');
 
 	return Promise.resolve()
+		.then(function(){
+			log('shutting down...');
+			emitter.emit(events.Shutdown);
+		})
+		.catch(function(err){
+			errorLog('Issue safely shutting down homebridge. \n'+(err ? err.stack || err.message || err : err));
+		})
 		.then(function(){
 			log('starting next hub...');
 			var args = process.argv.slice();
@@ -33,6 +46,8 @@ var restartHomeBridge = function(log) {
 };
 
 module.exports = {
+	on: emitter.on,
+	events: events,
 	restartHomeBridge: restartHomeBridge
 };
 
