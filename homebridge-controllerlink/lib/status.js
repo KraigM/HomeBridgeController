@@ -23,6 +23,10 @@ var restartHomeBridge = function(log) {
 			log('shutting down...');
 			emitter.emit(events.Shutdown);
 		})
+		.then(function(){
+			log('shutting down servers...');
+			return shutdownRegisteredServersAsync();
+		})
 		.catch(function(err){
 			errorLog('Issue safely shutting down homebridge. \n'+(err ? err.stack || err.message || err : err));
 		})
@@ -45,9 +49,60 @@ var restartHomeBridge = function(log) {
 		});
 };
 
+var registeredServers = [];
+var registerServer = function(server, log) {
+	log = log || console.log;
+	var debugLog = log.debug ? log.debug.bind(log) : log;
+	// Maintain a hash of all connected sockets
+	var sockets = {}, nextSocketId = 0;
+	server.on('connection', function (socket) {
+		// Add a newly connected socket
+		var socketId = nextSocketId++;
+		sockets[socketId] = socket;
+		debugLog('socket', socketId, 'opened');
+
+		// Remove the socket when it closes
+		socket.on('close', function () {
+			debugLog('socket', socketId, 'closed');
+			delete sockets[socketId];
+		});
+	});
+
+	server.on('close', function(){
+		debugLog('Server closed event!');
+		var index = registeredServers.indexOf(server);
+		if (index > -1) {
+			registeredServers.splice(index, 1);
+		}
+	});
+
+	server.shutdownAsync = function(){
+		return new Promise(function(resolve, reject){
+			// Close the server
+			server.close(function () {
+				log.debug('Server closed!');
+				resolve();
+			});
+			// Destroy all open sockets
+			for (var socketId in sockets) {
+				log.debug('socket', socketId, 'destroyed');
+				sockets[socketId].destroy();
+			}
+		});
+	};
+
+	registeredServers.push(server);
+};
+var shutdownRegisteredServersAsync = function() {
+	return Promise.all(registeredServers.map(function(server) {
+		return server && server.shutdownAsync && server.shutdownAsync();
+	}));
+};
+
 module.exports = {
 	on: emitter.on,
 	events: events,
+	registerServer: registerServer,
 	restartHomeBridge: restartHomeBridge
 };
 
