@@ -161,6 +161,7 @@ Server.prototype.startAsync = function() {
 				}
 			}).start();
 			self.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
-		});
+		})
+		.then(Status.enableAutoRestartOnError);
 };
 

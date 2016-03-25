@@ -49,6 +49,28 @@ var restartHomeBridge = function(log) {
 		});
 };
 
+var isAutoRestartOnErrorEnabled = false;
+var enableAutoRestartOnError = function() {
+	if (isAutoRestartOnErrorEnabled) return;
+
+	process.on('uncaughtException', function(err) {
+		console.error("Unhandled Error Detected : ", err && err.stack ? err.stack : err);
+		restartFromErrorIfNeeded();
+	});
+
+	process.on('unhandledRejection', function (reason, p) {
+		console.error("Unhandled Rejection Detected at: Promise ", p, " reason: ", reason);
+		restartFromErrorIfNeeded();
+	});
+
+	isAutoRestartOnErrorEnabled = true;
+};
+var restartFromErrorIfNeeded = function() {
+	if (!isAutoRestartOnErrorEnabled) return;
+	console.warn("Restarting homebridge due to an error");
+	restartHomeBridge();
+};
+
 var registeredServers = [];
 var registerServer = function(server, log) {
 	log = log || console.log;
@@ -100,6 +122,7 @@ var shutdownRegisteredServersAsync = function() {
 };
 
 module.exports = {
+	enableAutoRestartOnError: enableAutoRestartOnError,
 	on: emitter.on,
 	events: events,
 	registerServer: registerServer,
