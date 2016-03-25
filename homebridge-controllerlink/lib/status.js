@@ -7,15 +7,21 @@ const ChildProcess = require('child_process');
 var restartHomeBridge = function(log) {
 	log = log || console.log;
 	debug = log.debug || log;
-	log('restarting...');
 
-	var args = process.argv.slice();
-	var cmd = args.shift();
-	log(JSON.stringify(args));
-	ChildProcess.spawn(cmd, args, {
-		detached: true,
-		stdio: 'ignore'
-	});
+	try {
+		log('restarting...');
+
+		var args = process.argv.slice();
+		var cmd = args.shift();
+		log(JSON.stringify(args));
+		ChildProcess.spawn(cmd, args, {
+			detached: true,
+			stdio: 'ignore'
+		});
+	} catch (err) {
+		var errorLog = log.error || log;
+		if (errorLog) errorLog('Error restarting homebridge. \n'+(err ? err.stack || err.message || err : err));
+	}
 	process.exit(0);
 };
 
