@@ -111,6 +111,9 @@ Server.prototype.startAsync = function() {
 	return Promise.all([
 		Promise.fromCallback(this.server.listen.bind(this.server, this.port))
 			.then(function(){
+				Status.registerServer(self.server, self.log);
+			})
+			.then(function(){
 				var numUsers = 0;
 				var io = SocketIO(self.server);
 				const liveRoom = 'live';
@@ -158,6 +161,7 @@ Server.prototype.startAsync = function() {
 				}
 			}).start();
 			self.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
-		});
+		})
+		.then(Status.enableAutoRestartOnError);
 };
 
