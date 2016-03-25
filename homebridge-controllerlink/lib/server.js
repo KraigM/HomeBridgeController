@@ -21,9 +21,9 @@ var logger = new Logger();
 
 module.exports = Server;
 
-function Server(homebridge, port, accessKey, log, disableLogger) {
+function Server(homebridge, port, accessKey, log, config) {
 
-	logger.setEnabled(!disableLogger);
+	logger.setEnabled(!(config.disableLogger == true));
 
 	this.homebridge = homebridge;
 	this.port = port || 51828;
@@ -31,6 +31,7 @@ function Server(homebridge, port, accessKey, log, disableLogger) {
 	this.debug = log.debug;
 	var auth = new Auth(accessKey);
 	this.auth = auth;
+	this.config = config;
 
 	var app = express();
 	var server = http.createServer(app);
@@ -163,6 +164,10 @@ Server.prototype.startAsync = function() {
 			}).start();
 			self.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
 		})
-		.then(Status.enableAutoRestartOnError);
+		.then(function(){
+			if (!(self.disableAutoRestart == true)) {
+				Status.enableAutoRestartOnError();
+			}
+		});
 };
 
