@@ -1,3 +1,9 @@
+## Release 0.5.1
+- [[#37]](https://github.com/KraigM/HomeBridgeController/issues/37) Fixed issue with access key that seems to happen with new users.
+
+- [[#38]](https://github.com/KraigM/HomeBridgeController/issues/38) Fixed UI issue where add/remove buttons were on top of the platforms/accessories, if you have many platforms/accessories.
+
+
 # Release 0.5.0
 ---------------
 ### Additions 
