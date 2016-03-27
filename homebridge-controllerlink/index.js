@@ -14,7 +14,6 @@ module.exports = function (homebridge) {
 function HomeBridgeControllerLink(log, config) {
 	this.log = log;
 	this.debug = log.debug;
-	var disableLogger = config.disableLogger == true;
 
 	var accessKey = config["accessKey"];
 	if (!accessKey) {
@@ -27,7 +26,7 @@ function HomeBridgeControllerLink(log, config) {
 		return;
 	}
 
-	this.server = new Server(HomeBridge, config["port"], accessKey, this.log, disableLogger);
+	this.server = new Server(HomeBridge, config["port"], accessKey, this.log, config);
 }
 
 HomeBridgeControllerLink.prototype = {

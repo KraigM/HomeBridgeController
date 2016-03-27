@@ -15,14 +15,15 @@ var InstallQueue = require('./installq');
 var SocketIO = require('socket.io');
 var http = require('http');
 var Path = require('path');
+var Status = require('./status');
 
 var logger = new Logger();
 
 module.exports = Server;
 
-function Server(homebridge, port, accessKey, log, disableLogger) {
+function Server(homebridge, port, accessKey, log, config) {
 
-	logger.setEnabled(!disableLogger);
+	logger.setEnabled(!(config.disableLogger == true));
 
 	this.homebridge = homebridge;
 	this.port = port || 51828;
@@ -30,6 +31,7 @@ function Server(homebridge, port, accessKey, log, disableLogger) {
 	this.debug = log.debug;
 	var auth = new Auth(accessKey);
 	this.auth = auth;
+	this.config = config;
 
 	var app = express();
 	var server = http.createServer(app);
@@ -81,6 +83,7 @@ function Server(homebridge, port, accessKey, log, disableLogger) {
 	app.post('/hub', jsonRtn(Hub.api.installAsync));
 	app.get('/install/status', jsonRtn(InstallQueue.api.getStatus));
 	app.get('/ping', jsonRtn(function(){ return {}; }));
+	app.post('/hub/restart', jsonRtn(Status.api.restart));
 
 	var logRouter = express.Router();
 	var staticLogFileServer = express.static(logger.getLogDirectory(), {
@@ -108,6 +111,9 @@ Server.prototype.startAsync = function() {
 	var self = this;
 	return Promise.all([
 		Promise.fromCallback(this.server.listen.bind(this.server, this.port))
+			.then(function(){
+				Status.registerServer(self.server, self.log);
+			})
 			.then(function(){
 				var numUsers = 0;
 				var io = SocketIO(self.server);
@@ -147,6 +153,7 @@ Server.prototype.startAsync = function() {
 			var info = results[1] || {};
 			const key = 'hbctrllink';
 			mdns.createAdvertisement(mdns.tcp(key), port, {
+				name: info.Name,
 				txtRecord: {
 					Version: info.Version,
 					LinkVersion: info.LinkVersion,
@@ -156,6 +163,11 @@ Server.prototype.startAsync = function() {
 				}
 			}).start();
 			self.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
+		})
+		.then(function(){
+			if (!(self.disableAutoRestart == true)) {
+				Status.enableAutoRestartOnError();
+			}
 		});
 };
 

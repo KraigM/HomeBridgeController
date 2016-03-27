@@ -1,3 +1,16 @@
+# Release 0.6.0
+---------------
+### Additions 
+
++ [[#16]](https://github.com/KraigM/HomeBridgeController/issues/16) **Restart HomeBridge right from the app**  There is a new menu item under "Hub" (with a keyboard shortcut) that allows you to restart homebridge remotely, right from within the app.  You actually do not need to change anything about your startup for the restart functionality to work; it simply runs the same command line that was (ultimately) used to start it the first time.  The only thing that changes is if you started it on a console, it will disconnect from that console and be running in the background.  This cannot start your homebridge if it is currently off, nor does it handle system restarts (more to come in the future).
+
++ [[#31]](https://github.com/KraigM/HomeBridgeController/issues/31) **Logs Homebridge crashes and Auto Restarts** This means if some plugin has a bug that crashes your homebridge every once in a while, not only will you get the nice logs you need to send them, but you will be back up and running without you having to do anything.
+
++ [[#34]](https://github.com/KraigM/HomeBridgeController/issues/34) **Now supports switching hubs without restarting the app**  To switch, just close the window (or File > Close).  When you close, it will auto save locally, but not to the server.  This means when you open it back up, it will auto revert to the version on the server, however your changes will still show up in "Revert Document".  Auto saving will now also happen periodically (managed by Apple), but it will only save to the server if you explicitly "Save".
+
++ [[#27]](https://github.com/KraigM/HomeBridgeController/issues/27) Now if no hubs are found, the user will be given a proper message instead of a blank window.
+
+
 ## Release 0.5.1
 - [[#37]](https://github.com/KraigM/HomeBridgeController/issues/37) Fixed issue with access key that seems to happen with new users.
 

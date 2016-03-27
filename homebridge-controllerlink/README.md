@@ -19,9 +19,11 @@ Configuration sample:
 "platforms": [
 		{
 			"platform": "HomeBridgeControllerLink",
+			"disableAutoRestart": false,
 			"disableLogger": false
 		}
 	],
 
 ```
+"disableAutoRestart" - Optional config that can disable auto restarting homebridge when an unhandled error occurs (which will cause homebridge to crash)
 "disableLogger" - Optional config that can disable the automatic file logging as well as the streaming of the logs

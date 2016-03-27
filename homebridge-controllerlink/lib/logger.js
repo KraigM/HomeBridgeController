@@ -12,7 +12,7 @@ var path = require('path');
 var Promise = require('bluebird');
 const EventEmitter = require('events');
 
-const needsLogTime = !Hub.ensureHubVersion('0.3.1');
+const needsLogTime = !Hub.ensureHubVersion('>=0.3.1');
 
 function Logger() {
 	EventEmitter.call(this);
