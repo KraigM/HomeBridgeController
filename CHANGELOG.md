@@ -1,3 +1,7 @@
+## Release 0.6.1
+- [[#39]](https://github.com/KraigM/HomeBridgeController/issues/39) [[#40]](https://github.com/KraigM/HomeBridgeController/issues/40) Minor bug fixes
+
+
 # Release 0.6.0
 ---------------
 ### Additions 
