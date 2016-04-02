@@ -1,3 +1,8 @@
+## Release 0.6.2
+- [[#35]](https://github.com/KraigM/HomeBridgeController/issues/35) Fixed issue with parsing hub info from Bonjour when in a country that uses commas for decimals.
+
+- [[#36]](https://github.com/KraigM/HomeBridgeController/issues/36) Fixed issue, when logging full debug info using some versions of node.
+
 ## Release 0.6.1
 - [[#39]](https://github.com/KraigM/HomeBridgeController/issues/39) [[#40]](https://github.com/KraigM/HomeBridgeController/issues/40) Minor bug fixes
 
