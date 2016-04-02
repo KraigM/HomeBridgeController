@@ -129,6 +129,7 @@ Server.prototype.startAsync = function() {
 				});
 
 				var broadcastLog = function(line) {
+					if (line.indexOf('socket.io') >= 0) return; //Ignore socket.io logs
 					io.to(liveRoom).emit('log', line);
 				};
 				logger.on('log', broadcastLog);
