@@ -19,11 +19,15 @@ Configuration sample:
 "platforms": [
 		{
 			"platform": "HomeBridgeControllerLink",
+			"restartStyle": "respawn",
 			"disableAutoRestart": false,
 			"disableLogger": false
 		}
 	],
 
 ```
+"restartStyle" - Optional config to specify how the restart should be handled:
+    - "respawn" (default) : Spawns a new instance of homebridge when restarted
+    - "stopOnly" : Only shutsdown and then exits with exitCode 1
 "disableAutoRestart" - Optional config that can disable auto restarting homebridge when an unhandled error occurs (which will cause homebridge to crash)
 "disableLogger" - Optional config that can disable the automatic file logging as well as the streaming of the logs
