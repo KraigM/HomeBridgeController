@@ -11,6 +11,31 @@ var events =  {
 	Shutdown: "shutdown"
 };
 
+var RestartStyle = {
+	respawn: 0,
+	stopOnly: 1
+};
+RestartStyle.StopOnly = RestartStyle.stopOnly;
+RestartStyle.Stop = RestartStyle.stopOnly;
+RestartStyle.stop = RestartStyle.stopOnly;
+
+var configuredRestartStyle = RestartStyle.respawn;
+var setRestartStyle = function(style, log) {
+	log = log || console.log;
+	var warn = log.warn ? log.warn.bind(log) : log;
+	if (style && RestartStyle.hasOwnProperty(style)) {
+		configuredRestartStyle = RestartStyle[style];
+		return;
+	}
+	for (var s in RestartStyle) {
+		if (s == style) {
+			configuredRestartStyle = style;
+			return;
+		}
+	}
+	warn('Unknown restart style: ' + style);
+};
+
 var restartHomeBridge = function(log) {
 	log = log || console.log;
 	var debugLog = log.debug ? log.debug.bind(log) : log;
@@ -31,6 +56,10 @@ var restartHomeBridge = function(log) {
 			errorLog('Issue safely shutting down homebridge. \n'+(err ? err.stack || err.message || err : err));
 		})
 		.then(function(){
+			if (configuredRestartStyle == RestartStyle.stopOnly) {
+				log('respawn has been disabled so not starting next hub');
+				return;
+			}
 			log('starting next hub...');
 			var args = process.argv.slice();
 			var cmd = args.shift();
@@ -125,6 +154,8 @@ module.exports = {
 	enableAutoRestartOnError: enableAutoRestartOnError,
 	on: emitter.on,
 	events: events,
+	RestartStyle: RestartStyle,
+	setRestartStyle: setRestartStyle,
 	registerServer: registerServer,
 	restartHomeBridge: restartHomeBridge
 };

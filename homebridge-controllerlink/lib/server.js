@@ -166,6 +166,7 @@ Server.prototype.startAsync = function() {
 			self.debug("Advertised HomeBridgeControllerLink (" + key + ") at port " + port);
 		})
 		.then(function(){
+			Status.setRestartStyle(self.config.restartStyle);
 			if (!(self.disableAutoRestart == true)) {
 				Status.enableAutoRestartOnError();
 			}
