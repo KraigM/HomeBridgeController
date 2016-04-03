@@ -42,6 +42,9 @@ var restartHomeBridge = function(log) {
 	var errorLog = log.error ? log.error.bind(log) : log;
 
 	log('restarting...');
+	var doRespawn = configuredRestartStyle != RestartStyle.stopOnly;
+	var doQuietExit = doRespawn;
+	var restartExitCode = doQuietExit ? 0 : 1;
 
 	return Promise.resolve()
 		.then(function(){
@@ -56,7 +59,7 @@ var restartHomeBridge = function(log) {
 			errorLog('Issue safely shutting down homebridge. \n'+(err ? err.stack || err.message || err : err));
 		})
 		.then(function(){
-			if (configuredRestartStyle == RestartStyle.stopOnly) {
+			if (!doRespawn) {
 				log('respawn has been disabled so not starting next hub');
 				return;
 			}
@@ -74,7 +77,7 @@ var restartHomeBridge = function(log) {
 		})
 		.finally(function(){
 			log('waiting for exit...');
-			process.exit(0);
+			process.exit(restartExitCode);
 		});
 };
 
