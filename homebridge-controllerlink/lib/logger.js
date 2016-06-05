@@ -11,6 +11,7 @@ var util = require('util');
 var path = require('path');
 var Promise = require('bluebird');
 const EventEmitter = require('events');
+require('string.prototype.repeat');
 
 const needsLogTime = !Hub.ensureHubVersion('>=0.3.1');
 
