@@ -144,9 +144,11 @@ module.exports = {
 			throw new Error('init must be called before using the version manager');
 		}
 
-		if (!field) field = '.';
+		var args = _.slice(arguments);
+		if (!field) args.push((field = '.'));
+		args.push('--json');
 
-		return npm.commands.viewAsync([ packageName, field, '--json' ], true)
+		return npm.commands.viewAsync(args, true)
 			.catch(function (err) {
 				// normalize 404 errors
 				throw err.statusCode === 404 ? new Error(404) : err;
@@ -159,7 +161,8 @@ module.exports = {
 					throw new Error(404);
 				}
 
-				return _.values(response)[0][field];
+				var data = _.values(response)[0];
+				return (args.length <= 3) ? data[field] : data;
 			});
 	}
 };
