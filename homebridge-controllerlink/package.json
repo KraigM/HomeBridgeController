@@ -1,6 +1,6 @@
 {
   "name": "homebridge-controllerlink",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "description": "NodeJS connection to HomeBridgeController",
   "repository": {
     "type": "git",
