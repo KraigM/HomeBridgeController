@@ -1,3 +1,47 @@
+# Release 0.7.0
+---------------
+### Additions 
+
++ [[#20]](https://github.com/KraigM/HomeBridgeController/issues/20) **Now you can Fully Install the homebridge server right from the app!**  To start, there are two full installers include in this version.  This is still a little rough and likely has some kinks to work out but that should mainly be on the UI side (the actual install should be solid). This was a lot of work, and I'm pretty proud of it.
+	1. **Raspberry Pi SD Card Installer** - This installer currently installs a fresh copy of Raspian (the offical RPi OS) ready for homebridge and HomeBridgeController.  Best part is, you simply plug an SD card into your Mac, choose the options you want for the RPi (like WiFi config), and it will automatically do everything for you.  On your Mac it will:
+		- Download the latest Raspbian from raspberrypi.org
+		- Format your SD card for you
+		- Automatically load various settings from your Mac (like keyboard layout)
+		- Build a custom auto installer for RPi and add it to your SD card
+		- Auto eject your SD card
+		
+		Then you just plug the SD card into your RPi, plugin the ethernet (unless you have a WiFi compatible RPi and specified that on the installer), and plugin the power.  After that the RPi will automatically set itself up:
+		- First it will apply system level configs
+		- Properly unpack the Raspbian (NOOBS) image
+		- Auto reboot
+		- Install any system updates
+		- Install the dependencies needed for homebridge
+		- Install NPM (with Node 4.2.4)
+		- Install homebridge
+		- Install homebridge-controllerlink
+		- Setup the homebridge config with the controllerlink plugin
+		- Setup an auto-start-on-boot for homebridge
+		- And reboot again
+		
+		The whole process on the RPi can take awhile (especially if its is a less powerful RPi and/or slower SD card).  If done properly, it should not require any human interaction; anywhere from 10 mins to 45 mins it should just show up on the app as a new homebridge server detected!
+		
+	2. **Mac Installer** This installer will install on the Mac you are running on.  Not only will it install homebridge, homebridge-controllerlink, etc but it will even install the Xcode commandline tools (using an Apple command line installer).  Feedback on the UI side is a little lacking, but if it completes without error and shows up then everything should be good to go. This installer will:
+		- Install Xcode command line tools (straight from Apple)
+		- Install NPM (with Node 4.2.4)
+		- Install homebridge
+		- Install homebridge-controller
+		- Setup the homebridge config with the controllerlink plugin
+		- Setup an auto-start-on-login for homebridge (Launch Agent)
+		
+		Same as the RPi, as soon as it is complete and started up (automatic), it should show up on the app as a new homebridge server detected!
+
++ [[#41]](https://github.com/KraigM/HomeBridgeController/issues/41) **Now loads the available plugins right from the app** This plus the some other changes in the app greatly increases the install plugin screen.
+
++ [[#51]](https://github.com/KraigM/HomeBridgeController/issues/51) **Sidebar now indicates which platforms/accessories are currently enabled/disabled**  The sidebar has been greatly cleaned up.  As part of that, the sidebar will now show a green dot next to the enabled platforms/accessories and a red dot next to the disabled platforms/accessories.
+
++ [[#48]](https://github.com/KraigM/HomeBridgeController/issues/48) Various UI cleanup.
+
+
 ## Release 0.6.2
 - [[#35]](https://github.com/KraigM/HomeBridgeController/issues/35) Fixed issue with parsing hub info from Bonjour when in a country that uses commas for decimals.
 
