@@ -1,6 +1,6 @@
 {
   "name": "homebridge-controllerlink",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "NodeJS connection to HomeBridgeController",
   "repository": {
     "type": "git",
@@ -20,20 +20,20 @@
   "dependencies": {
     "bluebird": "^3.2.2",
     "body-parser": "latest",
-    "chalk": "latest",
     "commander": "latest",
     "express": "^4.13.3",
     "fs-extra": "^0.26.5",
     "lodash": "^4.2.1",
     "mdns": "^2.2.11",
-    "npm": "^3",
-    "npm-registry-client": "^7",
     "npmi": "git+https://github.com/maxleiko/npmi.git#fe209335ed0d139b9070a508eec3af2f29f999f1",
+    "npmview": ">=0.0.4",
+    "request": "^2.34.0",
     "request-promise": "latest",
     "semver": "^5.1.0",
     "socket.io": "^1.4.5",
     "strftime": "^0.9.2",
-    "string.prototype.repeat": "^0.2.0"
+    "string.prototype.repeat": "^0.2.0",
+    "strip-color": ">=0.1.0"
   },
   "devDependencies": {
     "homebridge": "^0.2.13"
