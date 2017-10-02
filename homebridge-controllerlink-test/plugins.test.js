@@ -30,7 +30,7 @@ test('#getAvailablePluginsAsync', function(done) {
 			ok(data && data.AvailablePlugins && data.AvailablePlugins.length > 0, 'No plugins returned');
 
 			function checkHasPlugin(name) {
-				var plugin = _.find(data.AvailablePlugins, function(p) { return p.name == name;});
+				var plugin = _.find(data.AvailablePlugins, function(p) { return p.Name == name;});
 				ok(plugin, "Couldn't find known plugin '" + name + "'");
 			}
 			checkHasPlugin('homebridge-controllerlink');

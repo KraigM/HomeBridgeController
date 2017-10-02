@@ -2,7 +2,7 @@
  * Created by kraigm on 1/13/16.
  */
 
-var chalk = require('chalk');
+var stripColor = require('strip-color');
 var strftime = require('strftime');
 var Loader = require('./loader');
 var Hub = require('./hub');
@@ -90,7 +90,7 @@ var getLineString = function(prefix, log) {
 	if (needsLogTime || !log || log[0] != '[') {
 		line += '[' + strftime('%T') + '] ';
 	}
-	return chalk.stripColor(line + log + '\n');
+	return stripColor(line + log + '\n');
 };
 
 Logger.prototype.internalRedirect = function () {
