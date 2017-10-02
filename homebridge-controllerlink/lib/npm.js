@@ -23,37 +23,24 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var npmi = Promise.promisify(require('npmi'));
-const npmPath = 'npm';
-const npmRegistryPath = 'npm-registry-client';
-var npm = Promise.promisifyAll(require(npmPath));
 var path = require('path');
 var rp = require('request-promise');
+var npmview = require('npmview');
 
-var initialized = false;
-
-/**
- * For some reason, Promise.promisifyAll does not work on npm.commands :(
- *   Promise.promisifyAll(npm.commands);
- * So we have to do it manually.
- */
-function rawPromisify(obj) {
-	_.each(obj, function (method, name) {
-		obj[name + 'Async'] = function () {
-			var args = [].slice.call(arguments);
-			var that = this;
-			return new Promise(function (resolve, reject) {
-				args.push(function (err, results) {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(results);
-					}
-				});
-				return method.apply(that, args);
-			});
-		};
+function npmviewAsync(module) {
+	return new Promise(function(resolve, reject) {
+		npmview(module, function (err, version, moduleInfo) {
+			if (err) {
+				reject(err);
+			} else {
+				moduleInfo.version = version;
+				resolve(moduleInfo);
+			}
+		});
 	});
 }
+
+
 
 module.exports = {
 
@@ -63,27 +50,7 @@ module.exports = {
 	 * @param args.prefix
 	 */
 	init: function (args) {
-
-		args = args || {};
-
-		// configure registry
-		if (args.registry) {
-			npm.config.set('registry', args.registry);
-		}
-
-		// use merge to eliminate undefined values
-		return npm.loadAsync(_.merge({}, {
-				silent: true,
-				global: args.global || undefined,
-				prefix: args.prefix || undefined
-			}))
-			.then(function () {
-				rawPromisify(npm.commands);
-				// Force non "cached" version of client as "cached" version seems to have issues atm
-				var RegistryClient = require(npmRegistryPath);
-				npm.registry = new RegistryClient(npm.registry.config);
-				return initialized = true;
-			});
+		return Promise.resolve();
 	},
 
 	install: function(id, options, log) {
@@ -140,29 +107,12 @@ module.exports = {
 	},
 
 	view: function(packageName, field) {
-		if (!initialized) {
-			throw new Error('init must be called before using the version manager');
-		}
-
-		var args = _.slice(arguments);
-		if (!field) args.push((field = '.'));
-		args.push('--json');
-
-		return npm.commands.viewAsync(args, true)
-			.catch(function (err) {
-				// normalize 404 errors
-				throw err.statusCode === 404 ? new Error(404) : err;
+		return npmviewAsync(packageName)
+			.then(function(result){
+				return field ? result[field] : result;
 			})
-			.then(function (response) {
-
-				// rare case where npm view returns an empty response
-				// https://github.com/tjunnone/npm-check-updates/issues/162
-				if (_.isEmpty(response)) {
-					throw new Error(404);
-				}
-
-				var data = _.values(response)[0];
-				return (args.length <= 3) ? data[field] : data;
+			.catch(function(err){
+				throw err;
 			});
 	}
 };
